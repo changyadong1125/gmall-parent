@@ -1,0 +1,4 @@
+# Project exclude paths
+/gmall-common/common-util/target/
+/gmall-common/service-util/target/
+/gmall-model/target/
