@@ -13,6 +13,7 @@
         <module>gmall-common/service-util</module>
         <module>gmall-model</module>
         <module>gmall-service</module>
+        <module>gmall-gateway</module>
     </modules>
 
     <properties>
@@ -26,7 +27,7 @@
         <alibaba.version>2.2.5.RELEASE</alibaba.version>
         <gmall.version>1.0</gmall.version>
         <mybatis-plus.version>3.4.1</mybatis-plus.version>
-        <mysql.version>8.0.29</mysql.version>
+        <mysql.version>8.0.30</mysql.version>
         <lombok.version>1.18.10</lombok.version>
         <swagger.version>2.9.2</swagger.version>
         <knife4j.version>2.0.2</knife4j.version>

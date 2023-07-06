@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 @Aspect
-public class GmallCacheAspect {
+public class GmallCacheAspect {                            
 
     @Autowired
     private RedissonClient redissonClient;

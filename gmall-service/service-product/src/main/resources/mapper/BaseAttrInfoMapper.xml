@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--namespace属性：设置为接口的全类名-->
+<mapper namespace="com.atguigu.gmall.mapper.BaseAttrInfoMapper">
+
+    <resultMap id="BaseAttrInfoMap" type="com.atguigu.gmall.model.product.BaseAttrInfo" autoMapping="true">
+        <!--id:表示主键
+            property:实体类对应的字段名
+            column:数据表对应的字段名-->
+        <id property="id" column="id"/>
+
+        <collection property="attrValueList" ofType="com.atguigu.gmall.model.product.BaseAttrValue" autoMapping="true">
+            <id property="id" column="value_id"/>
+        </collection>
+    </resultMap>
+    <!--
+        id属性：设置为接口中的方法名
+        resultType属性：设置为方法的返回值的类型的全类名
+        type:表示映射结果集返回的类型
+        List<BaseAttrInfo> getAttrInfoList(@Param("category1Id") Long category1Id, @Param("category2Id")Long category2Id,@Param("category3Id") Long category2Id1);
+    -->
+    <sql id="getAttrInfoListSql">
+        a.id,
+        a.`attr_name`,
+        a.`category_id`,
+        a.`category_level`,
+        b.id value_id,
+        b.`value_name`
+    </sql>
+    <select id="getAttrInfoList" resultMap="BaseAttrInfoMap">
+        SELECT
+        <include refid="getAttrInfoListSql"/>
+        FROM base_attr_info a INNER JOIN base_attr_value b ON a.id = b.attr_id
+        <where>
+            <trim prefix="(" suffix=")">
+                <if test="category1Id != null and category1Id!=''">
+                    (a.category_id= #{category1Id} AND a.category_level=1)
+                </if>
+                <if test="category2Id != null and category2Id!=''">
+                    or (a.category_id= #{category2Id} AND a.category_level=2)
+                </if>
+                <if test="category3Id != null and category3Id!=''">
+                    or (a.category_id= #{category3Id} AND a.category_level=3)
+                </if>
+            </trim>
+        </where>
+        AND a.is_deleted = 0
+        AND b.is_deleted = 0
+        ORDER BY a.category_level
+    </select>
+
+    <insert id="saveAttrInfo" parameterType="com.atguigu.gmall.model.product.BaseAttrInfo" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO base_attr_info (ATTR_NAME, CATEGORY_ID, CATEGORY_LEVEL) VALUES (#{attrName},#{categoryId},#{categoryLevel})
+    </insert>
+</mapper>
