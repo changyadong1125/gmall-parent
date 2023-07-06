@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.atguigu.gmall.mapper.BaseAttrValueMapper">
+
 <resultMap id="BaseAttrValue" type="com.atguigu.gmall.model.product.BaseAttrValue" autoMapping="true">
     <id column="id" property="id"/>
 </resultMap>
@@ -11,6 +12,6 @@
 
     <!--List<BaseAttrValue> getAttrValueList(Long attrId)-->
     <select id="getAttrValueList" resultMap="BaseAttrValue">
-        SELECT  a.value_name   FROM base_attr_value a WHERE attr_id = #{attrId}
+        SELECT a.id,  a.value_name   FROM base_attr_value a WHERE attr_id = #{attrId}
     </select>
 </mapper>

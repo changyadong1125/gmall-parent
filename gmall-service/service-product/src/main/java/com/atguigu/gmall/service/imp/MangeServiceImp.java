@@ -6,6 +6,7 @@ import com.atguigu.gmall.service.MangeService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -86,19 +87,25 @@ public class MangeServiceImp implements MangeService {
      * return:
      * author: smile
      * version: 1.0
-     * description:添加平台属性
+     * description:添加和修改平台属性
      */
     @Override
     @Transactional
     public void saveAttrInfo(BaseAttrInfo baseAttrInfo) {
-        baseAttrInfoMapper.saveAttrInfo(baseAttrInfo);
+        if (!StringUtils.isEmpty(baseAttrInfo.getId())) {
+            baseAttrInfoMapper.deleteById(baseAttrInfo.getId());
+            baseAttrValueMapper.deleteById(baseAttrInfo.getId());
+        }
         List<BaseAttrValue> attrValueList = baseAttrInfo.getAttrValueList();
-        attrValueList.forEach(V -> {
-            BaseAttrValue baseAttrValue = new BaseAttrValue();
-            baseAttrValue.setAttrId(baseAttrInfo.getId());
-            baseAttrValue.setValueName(V.getValueName());
-            baseAttrValueMapper.saveAttrValue(baseAttrValue);
-        });
+        if (attrValueList.size()!=0) {
+            baseAttrInfoMapper.saveAttrInfo(baseAttrInfo);
+            attrValueList.forEach(V -> {
+                BaseAttrValue baseAttrValue = new BaseAttrValue();
+                baseAttrValue.setAttrId(baseAttrInfo.getId());
+                baseAttrValue.setValueName(V.getValueName());
+                baseAttrValueMapper.saveAttrValue(baseAttrValue);
+            });
+        }
     }
 
     /**

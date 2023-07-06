@@ -1,4 +1,4 @@
-package com.atguigu.gmall.controller.admin;
+package com.atguigu.gmall.controller;
 
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.model.product.*;
@@ -85,7 +85,7 @@ public class ManageController {
      * return:
      * author: smile
      * version: 1.0
-     * description:添加平台属性
+     * description:添加和修改平台属性
      */
     @PostMapping("/saveAttrInfo")
     public Result<?> saveAttrInfo(@RequestBody BaseAttrInfo baseAttrInfo) {
