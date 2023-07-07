@@ -62,4 +62,20 @@ public interface MangeService {
      * description:根据属性Id获取属性值列表
      */
     List<BaseAttrValue> getAttrValueList(Long attrId);
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据id获取平台属性
+     */
+    BaseAttrInfo getBaseAttrInfo(Long attrId);
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:获取基础销售属性列表
+     */
+    List<BaseSaleAttr> getBaseSaleAttrList();
 }

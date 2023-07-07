@@ -1,4 +1,4 @@
-package com.atguigu.gmall.service.imp;
+package com.atguigu.gmall.service.impl;
 
 import com.atguigu.gmall.mapper.*;
 import com.atguigu.gmall.model.product.*;
@@ -34,6 +34,8 @@ public class MangeServiceImp implements MangeService {
     private BaseAttrInfoMapper baseAttrInfoMapper;
     @Resource
     private BaseAttrValueMapper baseAttrValueMapper;
+    @Resource
+    private BaseSaleAttrMapper baseSaleAttrMapper;
 
     /**
      * return:
@@ -90,14 +92,14 @@ public class MangeServiceImp implements MangeService {
      * description:添加和修改平台属性
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void saveAttrInfo(BaseAttrInfo baseAttrInfo) {
         if (!StringUtils.isEmpty(baseAttrInfo.getId())) {
             baseAttrInfoMapper.deleteById(baseAttrInfo.getId());
             baseAttrValueMapper.deleteById(baseAttrInfo.getId());
         }
         List<BaseAttrValue> attrValueList = baseAttrInfo.getAttrValueList();
-        if (attrValueList.size()!=0) {
+        if (attrValueList.size() != 0) {
             baseAttrInfoMapper.saveAttrInfo(baseAttrInfo);
             attrValueList.forEach(V -> {
                 BaseAttrValue baseAttrValue = new BaseAttrValue();
@@ -117,5 +119,26 @@ public class MangeServiceImp implements MangeService {
     @Override
     public List<BaseAttrValue> getAttrValueList(Long attrId) {
         return baseAttrValueMapper.getAttrValueList(attrId);
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据id查询属性，并设置属性值
+     */
+    @Override
+    public BaseAttrInfo getBaseAttrInfo(Long attrId) {
+        BaseAttrInfo baseAttrInfo = baseAttrInfoMapper.selectById(attrId);
+        if (baseAttrInfo != null) {
+            baseAttrInfo.setAttrValueList(this.getAttrValueList(attrId));
+            return baseAttrInfo;
+        }
+        return null;
+    }
+
+    @Override
+    public List<BaseSaleAttr> getBaseSaleAttrList() {
+        return baseSaleAttrMapper.selectList(null);
     }
 }

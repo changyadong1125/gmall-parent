@@ -34,7 +34,7 @@ public class FileUploadController {
      * description:文件上传
      */
     @PostMapping("/fileUpload")
-    public Result<?> fileUpload(MultipartFile file){
+    public Result<String> fileUpload(MultipartFile file){
         String fileUrl = fileUploadService.fileUpload(file);
         return Result.ok(fileUrl);
     }

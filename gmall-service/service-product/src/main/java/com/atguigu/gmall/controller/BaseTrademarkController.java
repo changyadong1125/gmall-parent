@@ -36,7 +36,6 @@ public class BaseTrademarkController {
     @ApiOperation("品牌列表分页")
     public Result<IPage<BaseTrademark>> getBaseTrademarkPage(@PathVariable Integer pageNum,
                                                              @PathVariable Integer pageSize) {
-
         IPage<BaseTrademark> baseTrademarkPage = baseTrademarkService.getBaseTrademarkPage(pageNum, pageSize);
         return Result.ok(baseTrademarkPage);
     }
@@ -48,6 +47,7 @@ public class BaseTrademarkController {
      * description:新增品牌
      */
     @PostMapping("/save")
+    @ApiOperation("新增品牌")
     public Result<?> saveBaseTrademark(@RequestBody BaseTrademark baseTrademark) {
         baseTrademarkService.save(baseTrademark);
         return Result.ok();
@@ -60,6 +60,7 @@ public class BaseTrademarkController {
      * description:回显品牌信息
      */
     @GetMapping("/get/{id}")
+    @ApiOperation("回显品牌信息")
     public Result<BaseTrademark> getBaseTrademark(@PathVariable Long id) {
         BaseTrademark baseTrademark = baseTrademarkService.getById(id);
         return Result.ok(baseTrademark);
@@ -72,7 +73,8 @@ public class BaseTrademarkController {
      * description:修改品牌信息
      */
     @PutMapping("/update")
-    public Result<BaseTrademark> updateBaseTrademark(@RequestBody BaseTrademark baseTrademark) {
+    @ApiOperation("修改品牌信息")
+    public Result<?> updateBaseTrademark(@RequestBody BaseTrademark baseTrademark) {
         baseTrademarkService.updateById(baseTrademark);
         return Result.ok();
     }
@@ -84,7 +86,8 @@ public class BaseTrademarkController {
      * description:删除品牌
      */
     @DeleteMapping("/remove/{id}")
-    public Result<BaseTrademark> deleteBaseTrademark(@PathVariable Long id) {
+    @ApiOperation("删除品牌")
+    public Result<?> deleteBaseTrademark(@PathVariable Long id) {
         baseTrademarkService.removeById(id);
         return Result.ok();
     }

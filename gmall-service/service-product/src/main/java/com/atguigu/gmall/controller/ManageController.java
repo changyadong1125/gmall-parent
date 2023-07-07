@@ -101,7 +101,20 @@ public class ManageController {
      */
     @GetMapping("/getAttrValueList/{attrId}")
     public Result<?> getAttrValueList(@PathVariable Long attrId) {
-        List<BaseAttrValue> baseAttrValueList = mangeService.getAttrValueList(attrId);
-        return Result.ok(baseAttrValueList);
+        BaseAttrInfo baseAttrInfo = mangeService.getBaseAttrInfo(attrId);
+        if (baseAttrInfo == null) return Result.fail();
+        return Result.ok(baseAttrInfo.getAttrValueList());
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:获取基础销售属性列表
+     */
+    @GetMapping("/baseSaleAttrList")
+    public Result<?> baseSaleAttrList() {
+        List<BaseSaleAttr> baseSaleAttrList = mangeService.getBaseSaleAttrList();
+        return Result.ok(baseSaleAttrList);
     }
 }
