@@ -1,23 +1,16 @@
 package com.atguigu.gmall.service.impl;
 
-
-import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.mapper.BaseCategoryTrademarkMapper;
 import com.atguigu.gmall.mapper.BaseTrademarkMapper;
 import com.atguigu.gmall.model.product.BaseCategoryTrademark;
 import com.atguigu.gmall.model.product.BaseTrademark;
 import com.atguigu.gmall.model.product.CategoryTrademarkVo;
 import com.atguigu.gmall.service.BaseCategoryTrademarkService;
-import com.atguigu.gmall.service.BaseTrademarkService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,22 +68,22 @@ public class BaseCategoryTrademarkServiceImpl extends ServiceImpl<BaseCategoryTr
         LambdaQueryWrapper<BaseCategoryTrademark> baseCategoryTrademarkLambdaQueryWrapper = new LambdaQueryWrapper<>();
         baseCategoryTrademarkLambdaQueryWrapper.eq(!StringUtils.isEmpty(category3Id), BaseCategoryTrademark::getCategory3Id, category3Id);
         List<BaseCategoryTrademark> baseCategoryTrademarkList = baseCategoryTrademarkMapper.selectList(baseCategoryTrademarkLambdaQueryWrapper);
+        //查询所有品牌Id
+        LambdaQueryWrapper<BaseTrademark> baseTrademarkLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        baseTrademarkLambdaQueryWrapper.select(BaseTrademark::getId);
+        List<Long> trademarksIdList = baseTrademarkMapper.selectObjs(baseTrademarkLambdaQueryWrapper).stream()
+                .map(obj -> (Long) obj).collect(Collectors.toCollection(ArrayList::new));
         if (!CollectionUtils.isEmpty(baseCategoryTrademarkList)) {
-            //查询当前三级分类已有品牌Id
+            //查询当前三级分类已有品牌Id 从循环中取数据然后然后放入另一个集合中 可用stream流map
             List<Long> trademarkIdList = baseCategoryTrademarkList.stream()
                     .map(BaseCategoryTrademark::getTrademarkId).collect(Collectors.toList());
-            //查询所有品牌Id
-            LambdaQueryWrapper<BaseTrademark> baseTrademarkLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            baseTrademarkLambdaQueryWrapper.select(BaseTrademark::getId);
-            List<Long> trademarksIdList = baseTrademarkMapper.selectObjs(baseTrademarkLambdaQueryWrapper).stream()
-                    .map(obj -> (Long) obj).collect(Collectors.toCollection(ArrayList::new));
             //获取当前三级分类可添加Id
             List<Long> currenTrademarkIdList = trademarksIdList.stream()
                     .filter(id -> !trademarkIdList.contains(id)).collect(Collectors.toList());
             //根据当前Id列表查询品牌信息
             return baseTrademarkMapper.selectBatchIds(currenTrademarkIdList);
         }
-        return null;
+        return  baseTrademarkMapper.selectBatchIds(trademarksIdList);
     }
 
     /**
@@ -101,12 +94,15 @@ public class BaseCategoryTrademarkServiceImpl extends ServiceImpl<BaseCategoryTr
      */
     @Override
     public void saveTrademark(CategoryTrademarkVo categoryTrademarkVo) {
-        categoryTrademarkVo.getTrademarkIdList().forEach(trademarkId -> {
-            BaseCategoryTrademark baseCategoryTrademark = new BaseCategoryTrademark();
-            baseCategoryTrademark.setCategory3Id(categoryTrademarkVo.getCategory3Id());
-            baseCategoryTrademark.setTrademarkId(trademarkId);
-            baseCategoryTrademarkMapper.insert(baseCategoryTrademark);
-        });
+        List<Long> trademarkIdList = categoryTrademarkVo.getTrademarkIdList();
+        if(!CollectionUtils.isEmpty(trademarkIdList)){
+            trademarkIdList .forEach(trademarkId -> {
+                BaseCategoryTrademark baseCategoryTrademark = new BaseCategoryTrademark();
+                baseCategoryTrademark.setCategory3Id(categoryTrademarkVo.getCategory3Id());
+                baseCategoryTrademark.setTrademarkId(trademarkId);
+                baseCategoryTrademarkMapper.insert(baseCategoryTrademark);
+            });
+        }
     }
 
     /**

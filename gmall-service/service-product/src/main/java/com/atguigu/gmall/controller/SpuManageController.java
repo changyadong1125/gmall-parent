@@ -1,13 +1,16 @@
 package com.atguigu.gmall.controller;
 
 import com.atguigu.gmall.common.result.Result;
+import com.atguigu.gmall.model.product.SpuImage;
 import com.atguigu.gmall.model.product.SpuInfo;
+import com.atguigu.gmall.model.product.SpuSaleAttr;
 import com.atguigu.gmall.service.SpuManageService;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * project:gmall-parent
@@ -36,8 +39,8 @@ public class SpuManageController {
                                 @PathVariable Long pageSize,
                                 @RequestParam Long category3Id) {
         IPage<SpuInfo> iPage = new Page<>(pageNum, pageSize);
-        IPage<SpuInfo> page = spuManageService.getSpuPage(iPage, category3Id);
-        return Result.ok(page);
+        iPage = spuManageService.getSpuPage(iPage, category3Id);
+        return Result.ok(iPage);
     }
 
     /**
@@ -63,6 +66,7 @@ public class SpuManageController {
         SpuInfo spuInfo = spuManageService.getSpuInfo(spuId);
         return Result.ok(spuInfo);
     }
+
     /**
      * return:
      * author: smile
@@ -70,8 +74,32 @@ public class SpuManageController {
      * description:修改spu
      */
     @PostMapping("/updateSpuInfo")
-    public Result<?> updateSpuInfo(@RequestBody SpuInfo spuInfo){
+    public Result<?> updateSpuInfo(@RequestBody SpuInfo spuInfo) {
         spuManageService.updateSpuInfo(spuInfo);
         return Result.ok(spuInfo);
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据spuId获取spu销售属性列表
+     */
+    @GetMapping("/spuSaleAttrList/{spuId}")
+    public Result<?> spuSaleAttrList(@PathVariable Long spuId) {
+        List<SpuSaleAttr> spuSaleAttrList = spuManageService.spuSaleAttrList(spuId);
+        return Result.ok(spuSaleAttrList);
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据spuId获取spu图片列表
+     */
+    @GetMapping("/spuImageList/{spuId}")
+    public Result<?> spuImageList(@PathVariable Long spuId) {
+        List<SpuImage> spuImageList = spuManageService.spuImageList(spuId);
+        return Result.ok(spuImageList);
     }
 }

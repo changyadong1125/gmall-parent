@@ -3,10 +3,11 @@ package com.atguigu.gmall.service.impl;
 import com.atguigu.gmall.service.FileUploadService;
 import io.minio.*;
 import io.minio.errors.MinioException;
+import jodd.io.FileNameUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -23,10 +24,11 @@ import java.util.UUID;
  * @Description:
  */
 @Service
+@RefreshScope
 public class FileUploadServiceImp implements FileUploadService {
 
     @Value("${minio.endpointUrl}")
-    private String endpointUrl; // endpointUrl = http://192.168.200.130:9000
+    private String endpointUrl;
     @Value("${minio.bucketName}")
     private String bucketName;
 
@@ -55,22 +57,23 @@ public class FileUploadServiceImp implements FileUploadService {
 
             // Make 'asiatrip' bucket if not exist.
             boolean found =
-                    minioClient.bucketExists(BucketExistsArgs.builder().bucket("gmall").build());
+                    minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
             if (!found) {
                 // Make a new bucket called 'asiatrip'.
-                minioClient.makeBucket(MakeBucketArgs.builder().bucket("gmall").build());
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
             } else {
                 System.out.println("Bucket 'gmall' already exists.");
             }
 
             // Upload '/home/user/Photos/asiaphotos.zip' as object name 'asiaphotos-2015.zip' to bucket
-            String fileName = UUID.randomUUID().toString().replaceAll("-", "") + file.getOriginalFilename();
+            String fileName = UUID.randomUUID().toString().replaceAll("-", "") + "." + FileNameUtil.getExtension(file.getOriginalFilename());
             minioClient.putObject(PutObjectArgs.builder()
-                    .bucket("gmall")
+                    .bucket(bucketName)
                     .object(fileName)
-                    .stream(file.getInputStream(), file.getSize(), 5 * 1024 * 1024)
+                    .stream(file.getInputStream(), file.getSize(), -1)
+                    .contentType(file.getContentType())
                     .build());
-            return endpointUrl+"/"+bucketName+"/"+fileName;
+            return endpointUrl + "/" + bucketName + "/" + fileName;
         } catch (MinioException e) {
             System.out.println("Error occurred: " + e);
             System.out.println("HTTP trace: " + e.httpTrace());

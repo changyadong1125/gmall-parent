@@ -7,9 +7,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * project:gmall-parent
@@ -73,29 +75,30 @@ public class SpuManageServiceImp implements SpuManageService {
         List<SpuSaleAttr> spuSaleAttrList = spuInfo.getSpuSaleAttrList();
         //保存spuInfo信息
         spuInfoService.save(spuInfo);
-
         //保存spuImages
-        spuImageList.forEach(image -> {
-            image.setSpuId(spuInfo.getId());
-        });
-        spuImageService.saveBatch(spuImageList);
-
+        if (!CollectionUtils.isEmpty(spuImageList)) {
+            spuImageList = spuImageList.stream()
+                    .peek(image -> image.setSpuId(spuInfo.getId())).collect(Collectors.toList());
+            spuImageService.saveBatch(spuImageList);
+        }
         //保存spuPosterList
-        spuPosterList.forEach(poster -> {
-            poster.setSpuId(spuInfo.getId());
-        });
-        spuPosterService.saveBatch(spuPosterList);
+        if (!CollectionUtils.isEmpty(spuPosterList)) {
+            spuPosterList = spuPosterList.stream()
+                    .peek(poster -> poster.setSpuId(spuInfo.getId())).collect(Collectors.toList());
+            spuPosterService.saveBatch(spuPosterList);
+        }
         //保存spuSaleAttrList
-        spuSaleAttrList.forEach(saleAttr -> {
-            saleAttr.setSpuId(spuInfo.getId());
-            List<SpuSaleAttrValue> spuSaleAttrValueList = saleAttr.getSpuSaleAttrValueList();
-            spuSaleAttrValueList.forEach(spuSaleAttrValue -> {
-                spuSaleAttrValue.setSpuId(spuInfo.getId());
-                spuSaleAttrValue.setBaseSaleAttrId(saleAttr.getBaseSaleAttrId());
-                spuSaleAttrValue.setSaleAttrValueName(saleAttr.getSaleAttrName());
-
-            });
-            spuSaleAttrValueService.saveBatch(spuSaleAttrValueList);
+        spuSaleAttrList.forEach(spuSaleAttr -> {
+            spuSaleAttr.setSpuId(spuInfo.getId());
+            List<SpuSaleAttrValue> spuSaleAttrValueList = spuSaleAttr.getSpuSaleAttrValueList();
+            //保存spuSaleAttrValue
+            if (!CollectionUtils.isEmpty(spuSaleAttrValueList)) {
+                spuSaleAttrValueList.forEach(spuSaleAttrValue -> {
+                    spuSaleAttrValue.setSpuId(spuInfo.getId());
+                    spuSaleAttrValue.setSaleAttrName(spuSaleAttr.getSaleAttrName());
+                });
+                spuSaleAttrValueService.saveBatch(spuSaleAttrValueList);
+            }
         });
         spuSaleAttrService.saveBatch(spuSaleAttrList);
     }
@@ -138,9 +141,9 @@ public class SpuManageServiceImp implements SpuManageService {
      * description:修改spu
      */
     @Override
+    @Transactional
     public void updateSpuInfo(SpuInfo spuInfo) {
         spuInfoMapper.updateById(spuInfo);
-
         //根据spuId和imagName删除图片
         List<SpuImage> spuImageList = spuInfo.getSpuImageList();
         spuImageList.forEach(spuImage -> {
@@ -150,6 +153,7 @@ public class SpuManageServiceImp implements SpuManageService {
             spuImageMapper.delete(spuImageLambdaQueryWrapper);
             spuImage.setSpuId(spuInfo.getId());
         });
+        //更新spuImageList
         spuImageService.saveBatch(spuImageList);
         //根据spuId和imagName删除海报
         List<SpuPoster> spuPosterList = spuInfo.getSpuPosterList();
@@ -160,8 +164,8 @@ public class SpuManageServiceImp implements SpuManageService {
             spuPosterMapper.delete(spuImageLambdaQueryWrapper);
             spuPoster.setSpuId(spuInfo.getId());
         });
+        //更新spuPosterList
         spuPosterService.saveBatch(spuPosterList);
-
         List<SpuSaleAttr> spuSaleAttrList = spuInfo.getSpuSaleAttrList();
         spuSaleAttrList.forEach(spuSaleAttr -> {
             //根据spuId和baseSaleAttrId删除SpuSaleAttr
@@ -178,11 +182,44 @@ public class SpuManageServiceImp implements SpuManageService {
                         .eq(SpuSaleAttrValue::getBaseSaleAttrId, spuSaleAttr.getBaseSaleAttrId());
                 spuSaleAttrValueMapper.delete(spuSaleAttrValueLambdaQueryWrapper);
                 spuSaleAttrValue.setSpuId(spuInfo.getId());
-                spuSaleAttrValue.setSaleAttrValueName(spuSaleAttr.getSaleAttrName());
+                spuSaleAttrValue.setSaleAttrName(spuSaleAttr.getSaleAttrName());
             });
+            //更新spuSaleAttrValueList
             spuSaleAttrValueService.saveBatch(spuSaleAttrValueList);
         });
+        //更新spuSaleAttrList
         spuSaleAttrService.saveBatch(spuSaleAttrList);
+    }
 
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据spuId获取spu消费属性列表
+     */
+    @Override
+    public List<SpuSaleAttr> spuSaleAttrList(Long spuId) {
+        LambdaQueryWrapper<SpuSaleAttr> spuSaleAttrLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        spuSaleAttrLambdaQueryWrapper.eq(SpuSaleAttr::getSpuId, spuId);
+        List<SpuSaleAttr> spuSaleAttrList = spuSaleAttrMapper.selectList(spuSaleAttrLambdaQueryWrapper);
+        return spuSaleAttrList.stream().peek(spuSaleAttr -> {
+            LambdaQueryWrapper<SpuSaleAttrValue> spuSaleAttrValueLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            spuSaleAttrValueLambdaQueryWrapper.eq(SpuSaleAttrValue::getSpuId, spuId)
+                    .eq(SpuSaleAttrValue::getBaseSaleAttrId, spuSaleAttr.getBaseSaleAttrId());
+            spuSaleAttr.setSpuSaleAttrValueList(spuSaleAttrValueMapper.selectList(spuSaleAttrValueLambdaQueryWrapper));
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据spuId获取spu图片列表
+     */
+    @Override
+    public List<SpuImage> spuImageList(Long spuId) {
+        LambdaQueryWrapper<SpuImage> spuImageLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        spuImageLambdaQueryWrapper.eq(SpuImage::getSpuId, spuId);
+        return spuImageMapper.selectList(spuImageLambdaQueryWrapper);
     }
 }

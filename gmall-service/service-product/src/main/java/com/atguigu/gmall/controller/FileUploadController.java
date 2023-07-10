@@ -32,6 +32,7 @@ public class FileUploadController {
      * author: smile
      * version: 1.0
      * description:文件上传
+     * springMVC封装好的MultiPartFile
      */
     @PostMapping("/fileUpload")
     public Result<String> fileUpload(MultipartFile file){

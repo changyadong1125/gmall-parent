@@ -1,8 +1,12 @@
 package com.atguigu.gmall.service;
 
+import com.atguigu.gmall.model.product.SpuImage;
 import com.atguigu.gmall.model.product.SpuInfo;
+import com.atguigu.gmall.model.product.SpuSaleAttr;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * project:gmall-parent
@@ -43,4 +47,18 @@ public interface SpuManageService{
      * description:修改spu
      */
     void updateSpuInfo(SpuInfo spuInfo);
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据spuId获取spu销售属性列表
+     */
+    List<SpuSaleAttr> spuSaleAttrList(Long spuId);
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据spuId获取spu图片列表
+     */
+    List<SpuImage> spuImageList(Long spuId);
 }
