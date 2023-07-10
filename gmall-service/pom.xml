@@ -9,6 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
+    <modules>
+        <module>service-product</module>
+    </modules>
     <artifactId>gmall-service</artifactId>
 
     <properties>
@@ -55,10 +58,10 @@
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
         <!-- 服务配置-->
-        <!--     <dependency>
+             <dependency>
                  <groupId>com.alibaba.cloud</groupId>
                  <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-             </dependency>-->
+             </dependency>
 
         <!-- 服务调用feign -->
         <dependency>

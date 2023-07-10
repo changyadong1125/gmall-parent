@@ -1,8 +1,22 @@
 package com.atguigu.gmall.common.config;
 
+/**
+ * project:gmall-parent
+ * package:com.atguigu.gmall.common.config
+ * class:w
+ *
+ * @author: smile
+ * @create: 2023/7/5-16:31
+ * @Version: v1.0
+ * @Description:
+ */
+
+import com.github.xiaoymin.knife4j.spring.annotations.EnableKnife4j;
 import com.google.common.base.Predicates;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.ParameterBuilder;
 import springfox.documentation.builders.PathSelectors;
@@ -20,9 +34,11 @@ import java.util.List;
 /**
  * Swagger2配置信息
  */
-//@Configuration
-//@EnableSwagger2
-public class Swagger2Config {
+@Configuration
+@EnableSwagger2
+@EnableKnife4j
+@Import(BeanValidatorPluginsConfiguration.class)
+public class Knife4jConfig {
 
     @Bean
     public Docket webApiConfig(){
@@ -40,7 +56,7 @@ public class Swagger2Config {
         pars.add(tokenPar.build());
 
         ParameterBuilder tmpPar = new ParameterBuilder();
-                tmpPar.name("userTempId")
+        tmpPar.name("userTempId")
                 .description("临时用户ID")
                 .defaultValue("1")
                 .modelRef(new ModelRef("string"))
@@ -95,6 +111,4 @@ public class Swagger2Config {
                 .contact(new Contact("Helen", "http://atguigu.com", "55317332@qq.com"))
                 .build();
     }
-
-
 }
