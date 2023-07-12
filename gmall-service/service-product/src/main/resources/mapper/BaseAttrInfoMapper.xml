@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!--namespace属性：设置为接口的全类名-->
-<mapper namespace="com.atguigu.gmall.mapper.BaseAttrInfoMapper">
+<mapper namespace="com.atguigu.gmall.product.mapper.BaseAttrInfoMapper">
 
     <resultMap id="BaseAttrInfoMap" type="com.atguigu.gmall.model.product.BaseAttrInfo" autoMapping="true">
         <!--id:表示主键

@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
 import java.util.List;
 
 /**
@@ -33,6 +32,7 @@ public class SpuSaleAttr extends BaseEntity {
 	@ApiModelProperty(value = "销售属性名称(冗余)")
 	@TableField("sale_attr_name")
 	private String saleAttrName;
+
 
 	// 销售属性值对象集合
 	@TableField(exist = false)

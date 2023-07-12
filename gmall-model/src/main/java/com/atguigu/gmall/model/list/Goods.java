@@ -9,7 +9,6 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 // Index = goods , Type = info  es 7.8.0 逐渐淡化type！  修改！
 //  es 的分片，副本是为了保证高可用！

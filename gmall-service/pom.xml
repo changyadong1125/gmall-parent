@@ -11,6 +11,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>service-product</module>
+        <module>service-item</module>
     </modules>
     <artifactId>gmall-service</artifactId>
 
