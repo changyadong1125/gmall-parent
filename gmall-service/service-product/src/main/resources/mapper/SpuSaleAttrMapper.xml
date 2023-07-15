@@ -6,7 +6,8 @@
 
     <resultMap id="spuSaleAttrMap" type="com.atguigu.gmall.model.product.SpuSaleAttr" autoMapping="true">
         <id column="id" property="id"/>
-        <collection property="spuSaleAttrValueList" ofType="com.atguigu.gmall.model.product.SpuSaleAttrValue" autoMapping="true">
+        <collection property="spuSaleAttrValueList" ofType="com.atguigu.gmall.model.product.SpuSaleAttrValue"
+                    autoMapping="true">
             <id column="spu_sale_attr_value_id" property="id"/>
         </collection>
     </resultMap>
@@ -15,7 +16,7 @@
                ssa.spu_id,
                ssa.base_sale_attr_id,
                ssa.sale_attr_name,
-               ssav.id spu_sale_attr_value_id,
+               ssav.id    spu_sale_attr_value_id,
                ssav.sale_attr_value_name,
                sv.sku_id,
                if(sku_id is null, 0, 1) is_checked
@@ -25,7 +26,9 @@
                                 AND ssa.base_sale_attr_id = ssav.base_sale_attr_id
                  LEFT JOIN sku_sale_attr_value sv
                            ON sv.sale_attr_value_id = ssav.id
-                               AND sv.sku_id = ${skuId}
+                               AND sv.sku_id = ${skuId} AND sv.is_deleted=0
         where ssa.spu_id = ${spuId}
+          AND ssa.`is_deleted`=0
+          AND ssav.`is_deleted`=0
     </select>
 </mapper>

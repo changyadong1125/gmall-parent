@@ -11,6 +11,8 @@
                  inner join spu_sale_attr_value ssav
                             on sv.sale_attr_value_id = ssav.id
         where sv.spu_id = ${spu_Id}
+                and sv.is_deleted=0
+                and ssav.is_deleted=0
         group by sku_id;
     </select>
 </mapper>

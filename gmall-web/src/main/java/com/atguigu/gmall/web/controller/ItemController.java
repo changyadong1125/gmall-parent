@@ -11,7 +11,6 @@ import java.util.Map;
 
 @Controller
 public class ItemController {
-
     @Resource
     private ItemFeignClient itemFeignClient;
 
@@ -24,7 +23,7 @@ public class ItemController {
     @GetMapping("/{skuId}.html")
     public String getItem(@PathVariable("skuId") Long skuId, Model model) {
         //调用详情微服务获取渲染详情页所有的数据
-        Result<Map<String,Object>> result = itemFeignClient.getItem(skuId);
+        Result<Map<String, Object>> result = itemFeignClient.getItem(skuId);
         model.addAllAttributes(result.getData());
         return "item/item";
     }

@@ -53,7 +53,6 @@ public class ItemServiceImp implements ItemService {
             return map1;
         }).collect(Collectors.toList());
 
-
         map.put("skuInfo", skuInfo);
         map.put("categoryView", productFeignClient.getCategoryView(skuInfo.getCategory3Id()));
         map.put("price", productFeignClient.getSkuPrice(skuId));

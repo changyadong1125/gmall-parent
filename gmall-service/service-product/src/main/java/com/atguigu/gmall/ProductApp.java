@@ -1,4 +1,4 @@
-package com.atguigu.gmall.product;
+package com.atguigu.gmall;
 
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
