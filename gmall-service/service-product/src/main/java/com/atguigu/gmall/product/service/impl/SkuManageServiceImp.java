@@ -1,5 +1,7 @@
 package com.atguigu.gmall.product.service.impl;
 
+import com.atguigu.gmall.common.cache.GmallCache;
+import com.atguigu.gmall.common.constant.RedisConst;
 import com.atguigu.gmall.model.product.*;
 import com.atguigu.gmall.product.mapper.SkuAttrValueMapper;
 import com.atguigu.gmall.product.mapper.SkuInfoMapper;
@@ -8,6 +10,8 @@ import com.atguigu.gmall.product.service.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.redisson.api.RBloomFilter;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.annotation.Resource;
+import javax.crypto.spec.OAEPParameterSpec;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +53,8 @@ public class SkuManageServiceImp implements SkuManageService {
     private SkuAttrValueMapper skuAttrValueMapper;
     @Resource
     private SkuSaleAttrValueMapper skuSaleAttrValueMapper;
+    @Resource
+    private RedissonClient redissonClient;
 
     /**
      * return:
@@ -104,6 +111,10 @@ public class SkuManageServiceImp implements SkuManageService {
                 skuSaleAttrValue.setSpuId(skuInfo.getSpuId());
             });
             skuSaleAttrValueService.saveBatch(skuSaleAttrValueList);
+            //将新增的商品SkuID存入布隆过滤器
+            //5. 获取布隆过滤器，将新增skuID存入布隆过滤器
+            RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConst.SKU_BLOOM_FILTER);
+            bloomFilter.add(skuInfo.getId());
         }
     }
 
@@ -135,6 +146,10 @@ public class SkuManageServiceImp implements SkuManageService {
         skuInfo.setId(skuId);
         skuInfo.setIsSale(1);
         skuInfoMapper.updateById(skuInfo);
+        //将新增的商品SkuID存入布隆过滤器
+        //5. 获取布隆过滤器，将新增skuID存入布隆过滤器
+        RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConst.SKU_BLOOM_FILTER);
+        bloomFilter.add(skuId);
         //todo:
     }
 
@@ -169,6 +184,7 @@ public class SkuManageServiceImp implements SkuManageService {
      * description:根据skuId获取平台属性和平台属性值
      */
     @Override
+    @GmallCache(prefix = "attrList")
     public List<BaseAttrInfo> getAttrList(Long skuId) {
         return skuAttrValueMapper.getAttrList(skuId);
     }
@@ -181,6 +197,7 @@ public class SkuManageServiceImp implements SkuManageService {
      * Map 可以代替实体类  本质是key value
      */
     @Override
+    @GmallCache(prefix = "skuValueIdsMap")
     public Map<Object, Object> getSkuValueIdsMap(Long spuId) {
         List<Map<Object, Object>> mapList = skuSaleAttrValueMapper.getSkuValueIdsMap(spuId);
         HashMap<Object, Object> resultMap = new HashMap<>();

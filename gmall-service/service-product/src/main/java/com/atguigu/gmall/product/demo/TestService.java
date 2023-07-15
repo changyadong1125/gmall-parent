@@ -1,4 +1,4 @@
-package com.atguigu.gmall.product.service;
+package com.atguigu.gmall.product.demo;
 
 /**
  * project:gmall-parent

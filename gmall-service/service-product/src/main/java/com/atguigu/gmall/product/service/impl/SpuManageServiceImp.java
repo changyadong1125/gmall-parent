@@ -1,5 +1,6 @@
 package com.atguigu.gmall.product.service.impl;
 
+import com.atguigu.gmall.common.cache.GmallCache;
 import com.atguigu.gmall.common.constant.RedisConst;
 import com.atguigu.gmall.model.product.*;
 import com.atguigu.gmall.product.mapper.*;
@@ -242,6 +243,7 @@ public class SpuManageServiceImp implements SpuManageService {
      * description:根据spuId 获取海报数据
      */
     @Override
+    @GmallCache(prefix ="spuPoster" )
     public List<SpuPoster> findSpuPosterBySpuId(Long spuId) {
         return spuPosterMapper.selectList(new LambdaQueryWrapper<SpuPoster>().eq(SpuPoster::getSpuId, spuId));
     }
