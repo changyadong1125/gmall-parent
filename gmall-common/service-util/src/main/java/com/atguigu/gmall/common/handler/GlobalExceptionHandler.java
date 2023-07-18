@@ -1,6 +1,5 @@
 package com.atguigu.gmall.common.handler;
 
-import com.atguigu.gmall.common.execption.GmallException;
 import com.atguigu.gmall.common.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;

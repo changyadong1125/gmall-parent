@@ -2,21 +2,35 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.atguigu.gmall.mapper.SkuAttrValueMapper">
+<mapper namespace="com.atguigu.gmall.product.mapper.SkuAttrValueMapper">
 
-    <resultMap id="BaseResultMap" type="com.atguigu.gmall.model.product.SkuAttrValue">
+    <resultMap id="BaseResultMap" type="com.atguigu.gmall.model.product.BaseAttrInfo" autoMapping="true">
             <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="attrId" column="attr_id" jdbcType="BIGINT"/>
-            <result property="valueId" column="value_id" jdbcType="BIGINT"/>
-            <result property="skuId" column="sku_id" jdbcType="BIGINT"/>
-            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-            <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+           <collection property="attrValueList" autoMapping="true" ofType="com.atguigu.gmall.model.product.BaseAttrValue" >
+               <id property="id" column="value_id"/>
+           </collection>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,attr_id,value_id,
-        sku_id,create_time,update_time,
-        is_deleted
+        bai.id,
+        bai.attr_name,
+        bai.category_id,
+        bai.category_level,
+        bav.id value_id,
+        bav.value_name
     </sql>
+    <!--  List<BaseAttrInfo> getAttrList(Long skuId);-->
+    <select id="getAttrList" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from base_attr_info bai
+            inner join base_attr_value bav
+        on bai.id = bav.attr_id
+            inner join sku_attr_value sav
+        on bav.id = sav.value_id
+        where sav.sku_id = ${skuId}
+        AND sav.is_deleted = 0
+    </select>
+
+
 </mapper>

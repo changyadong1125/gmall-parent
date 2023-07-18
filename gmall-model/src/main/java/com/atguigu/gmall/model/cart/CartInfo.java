@@ -3,13 +3,11 @@ package com.atguigu.gmall.model.cart;
 import com.atguigu.gmall.model.activity.CouponInfo;
 import com.atguigu.gmall.model.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.List;
 
 @Data

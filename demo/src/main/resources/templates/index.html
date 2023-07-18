@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>index</title>
+</head>
+<body>
+<!--#{}和${}
+th:text  文本渲染 给用户看
+th:value
+
+-->
+<h1 th:text="${name}">Welcome to Atguigu!</h1>
+
+<table>
+    <tr th:each="s,s1:${list}">
+        <th th:text="${s}"></th>
+        <th th:text="${s1.index}"></th>
+        <th th:text="${s1.first}"></th>
+        <th th:text="${s1.last}"></th>
+    </tr>
+
+</table>
+<h th:if="${age}>10" th:text="success"></h>
+<br>
+<h th:text="${age}?'10':'0'"></h>
+<h th:text="${session.session}"></h>
+<div th:include ="inner"></div>
+<h th:text="${session.id}"></h>
+<a th:href="@{http://localhost:8080/list?id=}+${session.id}">点我，不点是傻子</a>
+<br>
+<a th:href="@{http://localhost:8080/list?id={id}(id=${session.id})}">点我，不点ye是傻子</a>
+<br>
+<p th:utext="${gname}">color</p>
+<div th:text="${ok}"></div>
+<div th:text="${12534}"></div>
+<div th:text="${#dates.format(today,'yyyy-MM-dd HH:mm:ss')}"></div>
+<div th:text="${today}"></div>
+<!--后台获取age-->
+<a th:href="@{${age}}">羊了个羊</a>
+<a th:href="@{${#strings.replace(session.session,'e','999')}}">凉了个凉</a>
+</body>
+</html>

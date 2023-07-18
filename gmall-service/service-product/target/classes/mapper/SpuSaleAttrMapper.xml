@@ -2,21 +2,33 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.atguigu.gmall.mapper.SpuSaleAttrMapper">
+<mapper namespace="com.atguigu.gmall.product.mapper.SpuSaleAttrMapper">
 
-    <resultMap id="BaseResultMap" type="com.atguigu.gmall.model.product.SpuSaleAttr">
-            <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="spuId" column="spu_id" jdbcType="BIGINT"/>
-            <result property="baseSaleAttrId" column="base_sale_attr_id" jdbcType="BIGINT"/>
-            <result property="saleAttrName" column="sale_attr_name" jdbcType="VARCHAR"/>
-            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-            <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+    <resultMap id="spuSaleAttrMap" type="com.atguigu.gmall.model.product.SpuSaleAttr" autoMapping="true">
+        <id column="id" property="id"/>
+        <collection property="spuSaleAttrValueList" ofType="com.atguigu.gmall.model.product.SpuSaleAttrValue"
+                    autoMapping="true">
+            <id column="spu_sale_attr_value_id" property="id"/>
+        </collection>
     </resultMap>
-
-    <sql id="Base_Column_List">
-        id,spu_id,base_sale_attr_id,
-        sale_attr_name,create_time,update_time,
-        is_deleted
-    </sql>
+    <select id="getSpuSaleAttrListCheckBySku" resultMap="spuSaleAttrMap">
+        select ssa.id,
+               ssa.spu_id,
+               ssa.base_sale_attr_id,
+               ssa.sale_attr_name,
+               ssav.id    spu_sale_attr_value_id,
+               ssav.sale_attr_value_name,
+               sv.sku_id,
+               if(sku_id is null, 0, 1) is_checked
+        from spu_sale_attr ssa
+                 inner join spu_sale_attr_value ssav
+                            on ssa.spu_id = ssav.spu_id
+                                AND ssa.base_sale_attr_id = ssav.base_sale_attr_id
+                 LEFT JOIN sku_sale_attr_value sv
+                           ON sv.sale_attr_value_id = ssav.id
+                               AND sv.sku_id = ${skuId} AND sv.is_deleted=0
+        where ssa.spu_id = ${spuId}
+          AND ssa.`is_deleted`=0
+          AND ssav.`is_deleted`=0
+    </select>
 </mapper>
