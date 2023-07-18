@@ -1,6 +1,7 @@
 package com.atguigu.gmall.product.service;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.atguigu.gmall.model.product.*;
 import java.util.List;
 
@@ -92,4 +93,11 @@ public interface MangeService {
      * description:根据三级分类Id查询分类数据
      */
     BaseCategoryView getCategoryView(Long category3Id);
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:JsonObject继承json实现map
+     */
+    List<JSONObject> getBaseCategoryList();
 }

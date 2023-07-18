@@ -1,6 +1,9 @@
 package com.atguigu.gmall.product.api;
 
+import com.alibaba.fastjson.JSONObject;
+import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.model.product.*;
+import com.atguigu.gmall.product.service.BaseTrademarkService;
 import com.atguigu.gmall.product.service.MangeService;
 import com.atguigu.gmall.product.service.SkuManageService;
 import com.atguigu.gmall.product.service.SpuManageService;
@@ -35,6 +38,8 @@ public class ProductApiController {
     private SkuManageService skuManageService;
     @Resource
     private SpuManageService spuManageService;
+    @Resource
+    private BaseTrademarkService baseTrademarkService;
 
 
     /**
@@ -113,5 +118,26 @@ public class ProductApiController {
     @GetMapping("/getSkuValueIdsMap/{spuId}")
     public Map<Object, Object> getSkuValueIdsMap(@PathVariable Long spuId) {
         return skuManageService.getSkuValueIdsMap(spuId);
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:获取首页分类数据
+     */
+    @GetMapping("/getBaseCategoryList")
+    public Result<List<JSONObject>> getBaseCategoryList(){
+        return Result.ok(this.mangeService.getBaseCategoryList());
+    }
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据品牌Id查询品牌信息
+     */
+    @GetMapping("/inner/getTrademark/{tmId}")
+    public BaseTrademark getTrademarkById(@PathVariable("tmId") Long tmId) {
+        return baseTrademarkService.getTrademarkById(tmId);
     }
 }

@@ -1,6 +1,7 @@
 package com.atguigu.gmall.item.service.imp;
 
 import com.alibaba.fastjson.JSON;
+import com.atguigu.com.list.client.ListFeignClient;
 import com.atguigu.gmall.common.constant.RedisConst;
 import com.atguigu.gmall.item.service.ItemService;
 import com.atguigu.gmall.model.product.BaseAttrInfo;
@@ -39,6 +40,8 @@ public class ItemServiceImp implements ItemService {
     private RedissonClient redissonClient;
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
+    @Resource
+    private ListFeignClient listFeignClient;
 
     /**
      * return:
@@ -78,12 +81,6 @@ public class ItemServiceImp implements ItemService {
         CompletableFuture<Void> categoryViewCompletableFuture = skuInfoCompletableFuture.thenAcceptAsync(skuInfo -> {
             map.put("categoryView", productFeignClient.getCategoryView(skuInfo.getCategory3Id()));
         }, threadPoolExecutor);
-        //获取skuValueIdsMap
-        CompletableFuture<Void> skuValueIdsMapCompletableFuture = skuInfoCompletableFuture.thenAcceptAsync(skuInfo -> {
-            Map<Object, Object> skuValueIdsMap = productFeignClient.getSkuValueIdsMap(skuInfo.getSpuId());
-            String jsonString = JSON.toJSONString(skuValueIdsMap);
-            map.put("valuesSkuJson", jsonString);
-        }, threadPoolExecutor);
         //获取price
         CompletableFuture<Void> priceCompletableFuture = CompletableFuture.runAsync(() -> {
             map.put("price", productFeignClient.getSkuPrice(skuId));
@@ -96,15 +93,26 @@ public class ItemServiceImp implements ItemService {
         CompletableFuture<Void> spuSaleAttrListCompletableFuture = skuInfoCompletableFuture.thenAcceptAsync(skuInfo -> {
             map.put("spuSaleAttrList", productFeignClient.getSpuSaleAttrListCheckBySku(skuId, skuInfo.getSpuId()));
         }, threadPoolExecutor);
+        //获取skuValueIdsMap
+        CompletableFuture<Void> skuValueIdsMapCompletableFuture = skuInfoCompletableFuture.thenAcceptAsync(skuInfo -> {
+            Map<Object, Object> skuValueIdsMap = productFeignClient.getSkuValueIdsMap(skuInfo.getSpuId());
+            String jsonString = JSON.toJSONString(skuValueIdsMap);
+            map.put("valuesSkuJson", jsonString);
+        }, threadPoolExecutor);
+        //更新es中商品的分值
+        CompletableFuture<Void> incrHotScoreCompletableFuture = CompletableFuture.runAsync(() -> {
+            listFeignClient.incrHotScore(skuId);
+        },threadPoolExecutor);
         //多任务组合
         CompletableFuture.allOf(
                 skuInfoCompletableFuture,
                 skuAttrListCompletableFuture,
                 categoryViewCompletableFuture,
-                skuValueIdsMapCompletableFuture,
                 priceCompletableFuture,
                 spuPosterListCompletableFuture,
-                spuSaleAttrListCompletableFuture
+                spuSaleAttrListCompletableFuture,
+                skuValueIdsMapCompletableFuture,
+                incrHotScoreCompletableFuture
         ).join();
         //返回结果
         return map;

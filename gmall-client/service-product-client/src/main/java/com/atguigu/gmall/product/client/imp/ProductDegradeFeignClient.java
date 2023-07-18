@@ -1,8 +1,11 @@
 package com.atguigu.gmall.product.client.imp;
 
+import com.alibaba.fastjson.JSONObject;
+import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.model.product.*;
 import com.atguigu.gmall.product.client.ProductFeignClient;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.math.BigDecimal;
@@ -95,6 +98,26 @@ public class ProductDegradeFeignClient implements ProductFeignClient {
      */
 
     public Map<Object, Object> getSkuValueIdsMap(@PathVariable Long spuId) {
+        return null;
+    }
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:获取首页分类数据
+     */
+    @Override
+    public Result<List<JSONObject>> getBaseCategoryList() {
+        return null;
+    }
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据品牌Id获取品牌信息
+     */
+    @Override
+    public BaseTrademark getTrademarkById(Long tmId) {
         return null;
     }
 }

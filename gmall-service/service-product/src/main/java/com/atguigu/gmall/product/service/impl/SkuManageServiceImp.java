@@ -184,7 +184,7 @@ public class SkuManageServiceImp implements SkuManageService {
      * description:根据skuId获取平台属性和平台属性值
      */
     @Override
-    @GmallCache(prefix = "attrList")
+    @GmallCache(prefix = "attrList:")
     public List<BaseAttrInfo> getAttrList(Long skuId) {
         return skuAttrValueMapper.getAttrList(skuId);
     }
@@ -197,7 +197,7 @@ public class SkuManageServiceImp implements SkuManageService {
      * Map 可以代替实体类  本质是key value
      */
     @Override
-    @GmallCache(prefix = "skuValueIdsMap")
+    @GmallCache(prefix = "skuValueIdsMap:")
     public Map<Object, Object> getSkuValueIdsMap(Long spuId) {
         List<Map<Object, Object>> mapList = skuSaleAttrValueMapper.getSkuValueIdsMap(spuId);
         HashMap<Object, Object> resultMap = new HashMap<>();

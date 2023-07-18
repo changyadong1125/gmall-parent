@@ -1,4 +1,4 @@
-package com.atguigu.gmall.config;
+package com.atguigu.gmall.item.config;
 
 import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 import org.springframework.context.annotation.Bean;

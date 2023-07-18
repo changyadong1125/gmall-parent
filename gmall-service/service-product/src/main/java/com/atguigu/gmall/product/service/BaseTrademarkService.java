@@ -18,4 +18,11 @@ public interface BaseTrademarkService extends IService<BaseTrademark> {
      * description:获取品牌列表分页
      */
     IPage<BaseTrademark> getBaseTrademarkPage(Integer pageNum, Integer pageSize);
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据品牌Id查询品牌信息
+     */
+    BaseTrademark getTrademarkById(Long tmId);
 }
