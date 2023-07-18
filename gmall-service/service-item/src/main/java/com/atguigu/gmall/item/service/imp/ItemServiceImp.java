@@ -1,7 +1,7 @@
 package com.atguigu.gmall.item.service.imp;
 
 import com.alibaba.fastjson.JSON;
-import com.atguigu.com.list.client.ListFeignClient;
+import com.atguigu.gmall.list.client.ListFeignClient;
 import com.atguigu.gmall.common.constant.RedisConst;
 import com.atguigu.gmall.item.service.ItemService;
 import com.atguigu.gmall.model.product.BaseAttrInfo;

@@ -1,4 +1,4 @@
-package com.atguigu.gmall.item.config;
+package com.atguigu.gmall.common.config;
 
 import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +34,7 @@ public class ThreadPoolConfig {
         //  返回线程池对象
         return new ThreadPoolExecutor(
                 processors + 1, // 核心线程个数 io:2n ,cpu: n+1  n:内核数据
-                processors *2,
+                processors * 2,
                 0,
                 TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(10),
@@ -42,5 +42,4 @@ public class ThreadPoolConfig {
                 new ThreadPoolExecutor.AbortPolicy()
         );
     }
-
 }

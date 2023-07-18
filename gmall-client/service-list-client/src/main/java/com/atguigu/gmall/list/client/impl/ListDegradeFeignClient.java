@@ -1,6 +1,6 @@
-package com.atguigu.com.list.client.impl;
+package com.atguigu.gmall.list.client.impl;
 
-import com.atguigu.com.list.client.ListFeignClient;
+import com.atguigu.gmall.list.client.ListFeignClient;
 import com.atguigu.gmall.common.result.Result;
 import org.springframework.stereotype.Component;
 
