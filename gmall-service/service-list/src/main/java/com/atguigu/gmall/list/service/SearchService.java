@@ -39,7 +39,7 @@ public interface SearchService {
      * return:
      * author: smile
      * version: 1.0
-     * description:
+     * description:根据检索条件进行数据检索
      */
      SearchResponseVo search(SearchParam searchParam);
 }

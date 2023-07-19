@@ -1,14 +1,12 @@
 package com.atguigu.gmall.list.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.atguigu.gmall.common.constant.RedisConst;
 import com.atguigu.gmall.common.execption.GmallException;
 import com.atguigu.gmall.list.repository.GoodsRepository;
 import com.atguigu.gmall.list.service.SearchService;
-import com.atguigu.gmall.model.list.Goods;
-import com.atguigu.gmall.model.list.SearchAttr;
-import com.atguigu.gmall.model.list.SearchParam;
-import com.atguigu.gmall.model.list.SearchResponseVo;
+import com.atguigu.gmall.model.list.*;
 import com.atguigu.gmall.model.product.BaseAttrInfo;
 import com.atguigu.gmall.model.product.BaseCategoryView;
 import com.atguigu.gmall.model.product.BaseTrademark;
@@ -27,7 +25,10 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
+import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedLongTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -36,6 +37,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.*;
@@ -179,7 +181,7 @@ public class SearchServiceImp implements SearchService {
      * return:
      * author: smile
      * version: 1.0
-     * description:
+     * description:根据检索条件进行数据检索
      */
     @Override
     public SearchResponseVo search(SearchParam searchParam) {
@@ -192,7 +194,13 @@ public class SearchServiceImp implements SearchService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return this.parseResult(searchResponse);
+        SearchResponseVo searchResponseVo = this.parseResult(searchResponse);
+        searchResponseVo.setPageSize(searchParam.getPageSize());
+        searchResponseVo.setPageNo(searchParam.getPageNo());
+        Long totalPages = (searchResponseVo.getTotal() + searchParam.getPageSize() - 1) / searchParam.getPageSize();
+        searchResponseVo.setTotalPages(totalPages);
+
+        return searchResponseVo;
     }
 
     /**
@@ -210,34 +218,74 @@ public class SearchServiceImp implements SearchService {
         //总记录数赋值
         searchResponseVo.setTotal(hits.getTotalHits().value);
 
+        /*SearchHit[] subHits = hits.getHits();
+        for (SearchHit subHit : subHits) {
+            String sourceAsString = subHit.getSourceAsString();
+            Goods goods = JSON.parseObject(sourceAsString, Goods.class);
+        }*/
+
+
         //给商品列表赋值
-            //创建商品容器
-            List<Goods> goodsList = new ArrayList<>();
-            for (SearchHit searchHit : hits) {
-                String sourceAsString = searchHit.getSourceAsString();
-                Goods goods = JSONObject.parseObject(sourceAsString).toJavaObject(Goods.class);
-                //如果是分词查询 goods的标题应该高亮显示
-                if (searchHit.getHighlightFields().containsKey("title")) {
-                    String title = searchHit.getHighlightFields().get("title").getFragments()[0].toString();
-                    goods.setTitle(title);
-                }
-                //将Goods添加到商品容器中
-                goodsList.add(goods);
+        //创建商品容器
+        List<Goods> goodsList = new ArrayList<>();
+        for (SearchHit searchHit : hits) {
+            String sourceAsString = searchHit.getSourceAsString();
+            Goods goods = JSONObject.parseObject(sourceAsString).toJavaObject(Goods.class);
+            //如果是分词查询 goods的标题应该高亮显示
+            if (searchHit.getHighlightFields().containsKey("title")) {
+                String title = searchHit.getHighlightFields().get("title").getFragments()[0].toString();
+                goods.setTitle(title);
             }
+            //将Goods添加到商品容器中
+            goodsList.add(goods);
+        }
         searchResponseVo.setGoodsList(goodsList);
 
-        //获取聚合数据
+        //给品牌属性赋值获取聚合数据
         Map<String, Aggregation> aggregationMap = searchResponse.getAggregations().asMap();
         //获取品牌数据
-        ParsedLongTerms attrIdAgg = (ParsedLongTerms) aggregationMap.get("attrIdAgg");
+        ParsedLongTerms tmIdAgg = (ParsedLongTerms) aggregationMap.get("tmIdAgg");
+        List<SearchResponseTmVo> searchResponseTmVoList = tmIdAgg.getBuckets().stream().map(bucket -> {
+            //创建品牌实体对象
+            SearchResponseTmVo searchResponseTmVo = new SearchResponseTmVo();
+            String keyAsString = bucket.getKeyAsString();
+            //获取品牌Id
+            searchResponseTmVo.setTmId(Long.parseLong(keyAsString));
+            //获取品牌名
+            ParsedStringTerms tmNameAgg = (ParsedStringTerms) bucket.getAggregations().get("tmNameAgg");
+            String tmName = tmNameAgg.getBuckets().get(0).getKeyAsString();
+            searchResponseTmVo.setTmName(tmName);
+            //获取品牌logo
+            ParsedStringTerms tmLogoAgg = (ParsedStringTerms) bucket.getAggregations().get("tmLogoUrlAgg");
+            String tmLogoUrl = tmLogoAgg.getBuckets().get(0).getKeyAsString();
+            searchResponseTmVo.setTmLogoUrl(tmLogoUrl);
+            //返回数据
+            return searchResponseTmVo;
+        }).collect(Collectors.toList());
+        //将品牌数据添加到容器
+        searchResponseVo.setTrademarkList(searchResponseTmVoList);
 
-//        searchResponseVo.setTrademarkList();
-//        searchResponseVo.setAttrsList();
-//        searchResponseVo.setPageNo();
-//        searchResponseVo.setPageSize();
-//        searchResponseVo.setTotalPages();
-
-        return null;
+        //给平台属性集合赋值  获取平台属性聚合 类型是nested
+        ParsedNested attrAgg = (ParsedNested) searchResponse.getAggregations().get("attrAgg");
+        ParsedLongTerms attrIdAgg = (ParsedLongTerms)attrAgg.getAggregations().get("attrIdAgg");
+        List<SearchResponseAttrVo> searchResponseAttrVoList = attrIdAgg.getBuckets().stream().map(bucket -> {
+            //创建平台属性对象
+            SearchResponseAttrVo searchResponseAttrVo = new SearchResponseAttrVo();
+            //给平台属性id赋值
+            String attrId = bucket.getKeyAsString();
+            searchResponseAttrVo.setAttrId(Long.parseLong(attrId));
+            //获取平台属性名称
+            ParsedStringTerms attrNameAgg = (ParsedStringTerms)bucket.getAggregations().get("attrNameAgg");
+            String attrName = attrNameAgg.getBuckets().get(0).getKeyAsString();
+            searchResponseAttrVo.setAttrName(attrName);
+            //获取平台属性值
+            ParsedStringTerms attrValueAgg = (ParsedStringTerms)bucket.getAggregations().get("attrValueAgg");
+            List<String> valueNameList = attrValueAgg.getBuckets().stream().map(MultiBucketsAggregation.Bucket::getKeyAsString).collect(Collectors.toList());
+            searchResponseAttrVo.setAttrValueList(valueNameList);
+            return searchResponseAttrVo;
+        }).collect(Collectors.toList());
+        searchResponseVo.setAttrsList(searchResponseAttrVoList);
+        return searchResponseVo;
     }
 
     /**
@@ -305,6 +353,10 @@ public class SearchServiceImp implements SearchService {
                 searchSourceBuilder.sort("hotScore", SortOrder.DESC);
             }
         }
+
+        //封装所有查询条件
+        searchSourceBuilder.query(boolQueryBuilder);
+
         //品牌聚合
         searchSourceBuilder.aggregation(AggregationBuilders.terms("tmIdAgg").field("tmId")
                 .subAggregation(AggregationBuilders.terms("tmNameAgg").field("tmName"))
@@ -312,8 +364,8 @@ public class SearchServiceImp implements SearchService {
         //平台属性聚合
         searchSourceBuilder.aggregation(AggregationBuilders.nested("attrAgg", "attrs")
                 .subAggregation(AggregationBuilders.terms("attrIdAgg").field("attrs.attrId")
-                        .subAggregation(AggregationBuilders.terms("attrNameAgg").field("attrs.attrName")))
-                .subAggregation(AggregationBuilders.terms("attrValueAgg").field("attrs.attrValue")));
+                        .subAggregation(AggregationBuilders.terms("attrNameAgg").field("attrs.attrName"))
+                .subAggregation(AggregationBuilders.terms("attrValueAgg").field("attrs.attrValue"))));
 
         //创建请求对象
         SearchRequest searchRequest = new SearchRequest("goods");

@@ -2,7 +2,11 @@ package com.atguigu.gmall.list.client.impl;
 
 import com.atguigu.gmall.list.client.ListFeignClient;
 import com.atguigu.gmall.common.result.Result;
+import com.atguigu.gmall.model.list.SearchParam;
+import com.atguigu.gmall.model.list.SearchResponseVo;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
  * project:gmall-parent
@@ -24,6 +28,17 @@ public class ListDegradeFeignClient implements ListFeignClient {
      */
     @Override
     public Result<?> incrHotScore(Long skuId) {
+        return null;
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:根据检索条件进行数据检索
+     */
+    @Override
+    public Result<SearchResponseVo>  search(SearchParam searchParam) {
         return null;
     }
 }
