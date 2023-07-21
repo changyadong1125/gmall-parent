@@ -5,13 +5,9 @@ import com.atguigu.gmall.list.client.ListFeignClient;
 import com.atguigu.gmall.model.list.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-
 import javax.annotation.Resource;
-import javax.management.ObjectName;
 import java.util.*;
 
 /**
