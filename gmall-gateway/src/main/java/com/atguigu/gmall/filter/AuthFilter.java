@@ -127,11 +127,13 @@ public class AuthFilter implements GlobalFilter {
     private String getUserTempId(ServerHttpRequest request) {
 
         String userTempId = "";
-        HttpCookie httpCookie = request.getCookies().getFirst("userTempId");
-        if (null != httpCookie) {
-            //获取userTempId
-            userTempId = httpCookie.getValue();
-        } else {
+        //1.尝试从cookie中获取
+        List<HttpCookie> cookieList = request.getCookies().get("userTempId");
+        if (!CollectionUtils.isEmpty(cookieList)) {
+            userTempId = cookieList.get(0).getValue();
+            return userTempId;
+        }
+        else {
             List<String> list = request.getHeaders().get("userTempId");
             if (!CollectionUtils.isEmpty(list)){
                 userTempId=list.get(0);
@@ -149,6 +151,7 @@ public class AuthFilter implements GlobalFilter {
     private String getUserId(ServerHttpRequest request) {
         //获取用户Id需要先获取token
         //token存储在cookie 或者header
+
         HttpCookie httpCookie = request.getCookies().getFirst("token");
         String token = "";
         if (null != httpCookie) {

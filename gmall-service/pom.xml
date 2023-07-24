@@ -15,6 +15,7 @@
         <module>service-list</module>
         <module>service-user</module>
         <module>service-cart</module>
+        <module>service-order</module>
     </modules>
     <artifactId>gmall-service</artifactId>
 

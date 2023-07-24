@@ -3,22 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>gmall-parent</artifactId>
+        <artifactId>gmall-service</artifactId>
         <groupId>com.atguigu.gmall</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>gmall-client</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <module>service-product-client</module>
-        <module>service-item-client</module>
-        <module>service-list-client</module>
-        <module>service-user-client</module>
-        <module>service-cart-client</module>
-        <module>service-order-client</module>
-    </modules>
+    <artifactId>service-order</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -28,27 +19,23 @@
     <dependencies>
         <dependency>
             <groupId>com.atguigu.gmall</groupId>
-            <artifactId>common-util</artifactId>
+            <artifactId>service-product-client</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-
         <dependency>
             <groupId>com.atguigu.gmall</groupId>
-            <artifactId>gmall-model</artifactId>
+            <artifactId>service-cart-client</artifactId>
             <version>1.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <!-- 服务调用feign -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 
+    <build>
+        <finalName>service-order</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>
