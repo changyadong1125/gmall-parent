@@ -57,7 +57,7 @@ public class CartServiceImp implements CartService {
             if (cartInfoExist.getIsChecked() == 0) {
                 cartInfoExist.setIsChecked(1);
             }
-            //写到缓存
+            //保存
         } else {
             SkuInfo skuInfo = this.productFeignClient.getSkuInfo(skuId);
             cartInfoExist = new CartInfo();

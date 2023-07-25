@@ -148,7 +148,7 @@ public class OrderApiController {
             }
         }
 
-        //多任务组合 集合变成刷组
+        //多任务组合 集合变成数组
         CompletableFuture.allOf(completableFutureArrayList.toArray(new CompletableFuture[completableFutureArrayList.size()])).join();
         //判断是否发生异常
         if (errorList.size() > 0) {
