@@ -32,4 +32,8 @@ public class OrderController {
         model.addAllAttributes(mapResult.getData());
         return "order/trade";
     }
+    @GetMapping("myOrder.html")
+    public String myOrder(){
+        return "order/myOrder";
+    }
 }

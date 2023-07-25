@@ -39,8 +39,6 @@ public class PassportController {
      */
     @GetMapping("register.html")
     public String register(){
-
-
         return "register";
     }
 }

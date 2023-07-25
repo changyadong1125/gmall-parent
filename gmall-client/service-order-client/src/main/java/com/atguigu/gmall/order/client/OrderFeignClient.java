@@ -1,11 +1,15 @@
 package com.atguigu.gmall.order.client;
 
 import com.atguigu.gmall.common.result.Result;
+import com.atguigu.gmall.model.order.OrderInfo;
 import com.atguigu.gmall.order.client.imp.OrderDegradeFeignClient;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -18,7 +22,7 @@ import java.util.Map;
  * @Version: v1.0
  * @Description:
  */
-@FeignClient(value = "service-order",path = "/api/order",fallback = OrderDegradeFeignClient.class)
+@FeignClient(value = "service-order", path = "/api/order", fallback = OrderDegradeFeignClient.class)
 public interface OrderFeignClient {
     /**
      * return:
@@ -27,5 +31,9 @@ public interface OrderFeignClient {
      * description:封装订单详细页显示数据
      */
     @GetMapping("/auth/trade")
-    public Result<Map<String, Object>> authTrade() ;
+    Result<Map<String, Object>> authTrade();
+
+    @RequestMapping("/inner/getOrderInfoByUserIdAndOrderId")
+//    OrderInfo getOrderInfoByUserIdAndOrderId(HashMap<String, Long> map ) ;
+    OrderInfo getOrderInfoByUserIdAndOrderId();
 }

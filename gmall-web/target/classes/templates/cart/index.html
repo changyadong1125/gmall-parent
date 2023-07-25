@@ -336,8 +336,8 @@
                     this.allChecked = false;
                 }
                 for(var i=0; i<this.data.length; i++) {
-                    this.total += this.data[i].skuPrice * this.data[i].skuNum
                     if (this.data[i].isChecked == 1) {
+                        this.total += this.data[i].skuPrice * this.data[i].skuNum
                         this.count += 1
                     } else {
                         this.allChecked = false;

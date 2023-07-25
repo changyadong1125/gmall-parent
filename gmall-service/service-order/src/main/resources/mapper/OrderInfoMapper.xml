@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper SYSTEM "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.atguigu.gmall.order.mapper.OrderInfoMapper">
+    <resultMap id="OrderInfoMap" type="com.atguigu.gmall.model.order.OrderInfo" autoMapping="true">
+        <!--映射主键的-->
+        <id property="id" column="id"/>
+        <!--配置一对多-->
+        <collection property="orderDetailList" ofType="com.atguigu.gmall.model.order.OrderDetail" autoMapping="true">
+            <id property="id" column="detail_id"/>
+        </collection>
+    </resultMap>
+
+    <select id="getOrderPage" resultMap="OrderInfoMap">
+        select
+        oi.id,
+        oi.consignee,
+        oi.consignee_tel,
+        oi.total_amount,
+        oi.order_status,
+        oi.user_id,
+        oi.payment_way,
+        oi.delivery_address,
+        oi.order_comment,
+        oi.out_trade_no,
+        oi.trade_body,
+        oi.create_time,
+        oi.expire_time,
+        oi.process_status,
+        od.id detail_id,
+        od.order_id,
+        od.sku_id,
+        od.sku_name,
+        od.img_url,
+        od.order_price,
+        od.sku_num,
+        od.create_time
+        from order_info oi
+        inner join order_detail od
+        on oi.id = od.order_id
+        <where>
+            user_id = #{userId}
+            <if test="orderStatus!=null and orderStatus!=''">
+                and oi.order_status = #{orderStatus}
+            </if>
+        </where>
+        ORDER BY oi.id DESC
+    </select>
+
+</mapper>

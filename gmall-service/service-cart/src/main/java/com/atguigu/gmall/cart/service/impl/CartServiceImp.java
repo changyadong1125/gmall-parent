@@ -151,7 +151,6 @@ public class CartServiceImp implements CartService {
             }
             //如果不为空进行排序后返回
             loginCartInfoList.sort((A, B) -> DateUtil.truncatedCompareTo(B.getUpdateTime(), A.getUpdateTime(), Calendar.SECOND));
-            ;
         }
         //最后返回用户购物车数据
         return loginCartInfoList;
