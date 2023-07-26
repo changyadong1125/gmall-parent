@@ -1,8 +1,11 @@
 package com.atguigu.gmall.order.service;
 
+import com.atguigu.gmall.model.enums.ProcessStatus;
 import com.atguigu.gmall.model.order.OrderInfo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -16,14 +19,14 @@ import javax.servlet.http.HttpServletRequest;
  * @Version: v1.0
  * @Description:
  */
-public interface OrderService {
+public interface OrderService extends IService<OrderInfo> {
     /**
      * return:
      * author: smile
      * version: 1.0
      * description:保存订单
      */
-    Long saveOrderInfo(OrderInfo orderInfo);
+    OrderInfo saveOrderInfo(OrderInfo orderInfo);
 
     /**
      * return:
@@ -58,4 +61,28 @@ public interface OrderService {
      * description:获取OrderInfo
      */
     OrderInfo getOrderInfoByUserIdAndOrderId(Long userId, Long orderId);
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:获取订单信息
+     */
+    OrderInfo getOrderInfo(Long orderId);
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:取消订单
+     */
+    void execExpiredOrder(Long orderId);
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:更改订单状态
+     */
+    void updateOrderStatus(Long orderId, ProcessStatus closed);
 }

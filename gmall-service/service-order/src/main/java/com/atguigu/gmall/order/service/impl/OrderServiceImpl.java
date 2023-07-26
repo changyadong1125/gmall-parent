@@ -2,6 +2,7 @@ package com.atguigu.gmall.order.service.impl;
 
 import com.atguigu.gmall.common.util.HttpClientUtil;
 import com.atguigu.gmall.model.enums.OrderStatus;
+import com.atguigu.gmall.model.enums.ProcessStatus;
 import com.atguigu.gmall.model.order.OrderDetail;
 import com.atguigu.gmall.model.order.OrderInfo;
 import com.atguigu.gmall.order.mapper.OrderDetailMapper;
@@ -10,6 +11,7 @@ import com.atguigu.gmall.order.service.OrderService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -37,7 +39,7 @@ import java.util.*;
  */
 @Service
 @RefreshScope
-public class OrderServiceImpl implements OrderService {
+public class OrderServiceImpl extends ServiceImpl<OrderInfoMapper,OrderInfo> implements OrderService {
     @Resource
     private OrderDetailMapper orderDetailMapper;
     @Resource
@@ -55,7 +57,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long saveOrderInfo(OrderInfo orderInfo) {
+    public OrderInfo saveOrderInfo(OrderInfo orderInfo) {
         //  total_amount order_status user_id out_trade_no trade_body operate_time expire_time process_status
         //  给以上字段进行赋值.
         //调用该方法之前必须给赋值订单明细集合  orderInfo和orderDetailList有数据，从前端页面传过来
@@ -89,7 +91,7 @@ public class OrderServiceImpl implements OrderService {
                 orderDetailMapper.insert(orderDetail);
             });
         }
-        return orderInfo.getId();
+        return orderInfo;
     }
 
     /**
@@ -146,6 +148,7 @@ public class OrderServiceImpl implements OrderService {
         String result = HttpClientUtil.doGet(WARE_URL + "/hasStock?skuId=" + skuId + "&num=" + skuNum);
         return "1".equals(result);
     }
+
     /**
      * return:
      * author: smile
@@ -170,8 +173,48 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderInfo getOrderInfoByUserIdAndOrderId(Long userId, Long orderId) {
         LambdaQueryWrapper<OrderInfo> orderInfoLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        orderInfoLambdaQueryWrapper.eq(OrderInfo::getId,orderId);
-        orderInfoLambdaQueryWrapper.eq(OrderInfo::getUserId,userId);
-        return orderInfoMapper.selectOne(orderInfoLambdaQueryWrapper);
+        orderInfoLambdaQueryWrapper.eq(OrderInfo::getId, orderId);
+        orderInfoLambdaQueryWrapper.eq(OrderInfo::getUserId, userId);
+        OrderInfo orderInfo = orderInfoMapper.selectOne(orderInfoLambdaQueryWrapper);
+        if (null!=orderInfo){
+            orderInfo.setOrderDetailList(orderDetailMapper.selectList(new LambdaQueryWrapper<OrderDetail>().eq(OrderDetail::getOrderId,orderId)));
+        }
+        return orderInfo;
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:获取订单信息
+     */
+    @Override
+    public OrderInfo getOrderInfo(Long orderId) {
+        return orderInfoMapper.selectById(orderId);
+    }
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:取消订单
+     */
+    @Override
+    public void execExpiredOrder(Long orderId) {
+        this.updateOrderStatus(orderId, ProcessStatus.CLOSED);
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:更改订单状态
+     */
+    @Override
+    public void updateOrderStatus(Long orderId, ProcessStatus processStatus) {
+        OrderInfo orderInfo = new OrderInfo();
+        orderInfo.setId(orderId);
+        orderInfo.setOrderStatus(processStatus.getOrderStatus().name());
+        orderInfo.setProcessStatus(processStatus.name());
+        baseMapper.updateById(orderInfo);
     }
 }

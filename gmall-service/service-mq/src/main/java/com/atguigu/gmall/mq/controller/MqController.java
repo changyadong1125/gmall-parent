@@ -1,14 +1,11 @@
 package com.atguigu.gmall.mq.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.common.service.RabbitService;
 import com.atguigu.gmall.mq.config.DeadLetterMqConfig;
 import com.atguigu.gmall.mq.config.DelayedMqConfig;
-import com.atguigu.gmall.mq.service.RabbitService1;
-import org.springframework.amqp.AmqpException;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessagePostProcessor;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * project:gmall-parent
@@ -57,5 +55,18 @@ public class MqController {
         );
         return Result.ok();
     }
+    //  发送延迟消息-插件实现
+    @GetMapping("/sendDelayMsg1")
+    public Result sendDelayMsg1(){
+        //  利用时间判断是否延迟10s;
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        //  每次发送的消息，都给它配一个uuid
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("messageId", UUID.randomUUID().toString());
+        jsonObject.put("content", "atguigu");
 
+        //  10s 延迟消息。
+        rabbitService.sendDelayMessage(DelayedMqConfig.exchange_delay,DelayedMqConfig.routing_delay,jsonObject,10);
+        return Result.ok();
+    }
 }

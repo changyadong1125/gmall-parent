@@ -82,7 +82,7 @@ public class MQProducerAckConfig implements RabbitTemplate.ReturnCallback, Rabbi
             this.redisTemplate.opsForValue().set(Objects.requireNonNull(correlationData.getId()), JSONObject.toJSONString(gmallCorrelationData), 10, TimeUnit.MINUTES);
             if (gmallCorrelationData.isDelay()) {
                 //发送延迟消息
-                log.info("重试第:{}次发送》》》》》》》》》...", retryCount);
+                log.info("重试第{}:次发送》》》》》》》》》...", retryCount);
                 this.rabbitTemplate.convertAndSend(gmallCorrelationData.getExchange(),gmallCorrelationData.getRoutingKey(),message -> {
                             message.getMessageProperties().setDelay(gmallCorrelationData.getDelayTime()*1000);
                             return message;}, gmallCorrelationData);
@@ -113,9 +113,9 @@ public class MQProducerAckConfig implements RabbitTemplate.ReturnCallback, Rabbi
         String messageId = message.getMessageProperties().getHeader("spring_returned_message_correlation");
         String correlationDataString = this.redisTemplate.opsForValue().get(messageId);
         GmallCorrelationData gmallCorrelationData = JSONObject.parseObject(correlationDataString, GmallCorrelationData.class);
-        if (gmallCorrelationData.isDelay()) {
-            return;
-        }
+//        if (gmallCorrelationData.isDelay()) {
+//            return;
+//        }
         this.retryMessage(gmallCorrelationData);
     }
 }

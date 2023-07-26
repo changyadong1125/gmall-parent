@@ -2,8 +2,10 @@ package com.atguigu.gmall.order.controller;
 
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.atguigu.gmall.cart.client.CartFeignClient;
+import com.atguigu.gmall.common.constant.MqConst;
 import com.atguigu.gmall.common.constant.RedisConst;
 import com.atguigu.gmall.common.result.Result;
+import com.atguigu.gmall.common.service.RabbitService;
 import com.atguigu.gmall.common.util.AuthContextHolder;
 import com.atguigu.gmall.model.cart.CartInfo;
 import com.atguigu.gmall.model.order.OrderDetail;
@@ -19,6 +21,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -50,6 +55,8 @@ public class OrderApiController {
     private RedisTemplate<String, String> redisTemplate;
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
+    @Resource
+    private RabbitService rabbitService;
 
     /**
      * return:
@@ -156,7 +163,14 @@ public class OrderApiController {
             return Result.fail().message(StringUtils.join(errorList, ","));
         }
         //保存订单
-        Long orderId = orderService.saveOrderInfo(orderInfo);
+        orderInfo = orderService.saveOrderInfo(orderInfo);
+        Long orderId = orderInfo.getId();
+        //发送延迟队列，如果定时未支付，取消订单 根据订单过期时间设置延迟时间
+        Date expireTime = orderInfo.getExpireTime();
+        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime toLocalDateTime = expireTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        Duration duration = Duration.between(toLocalDateTime, localDateTime);
+        rabbitService.sendDelayMessage(MqConst.EXCHANGE_DIRECT_ORDER_CANCEL, MqConst.ROUTING_ORDER_CANCEL, orderId, Math.abs((int)duration.getSeconds()));
         return Result.ok(orderId);
     }
 
@@ -176,20 +190,23 @@ public class OrderApiController {
         IPage<OrderInfo> orderPage = orderService.getOrderPage(orderInfoPage, userId, orderStatus);
         return Result.ok(orderPage);
     }
+
     /**
      * return:
      * author: smile
      * version: 1.0
      * description:获取OrderInfo
      */
-    @RequestMapping("/inner/getOrderInfoByUserIdAndOrderId")
-    public OrderInfo getOrderInfoByUserIdAndOrderId(HttpServletRequest request ) {
-        Long orderId =Long.parseLong(request.getHeader("orderId")) ;
-        Long userId =Long.parseLong(request.getHeader("userId")) ;
+    @GetMapping("/inner/getOrderInfoByUserIdAndOrderId/{orderId}")
+    public OrderInfo getOrderInfoByUserIdAndOrderId(HttpServletRequest request, @PathVariable Long orderId) {
+        Long userId = Long.parseLong(request.getHeader("userId"));
         return orderService.getOrderInfoByUserIdAndOrderId(userId, orderId);
     }
 
-
+    @GetMapping("/inner/getOrderInfo/{orderId}")
+    public OrderInfo getOrderInfo(@PathVariable Long orderId) {
+        return orderService.getOrderInfo(orderId);
+    }
  /*   @GetMapping("/inner/getOrderInfoByUserIdAndOrderId")
     public String getOrderInfoByUserIdAndOrderId(@RequestParam Long userId,@RequestParam Long orderId) {
         return JSONObject.toJSONString(orderService.getOrderInfoByUserIdAndOrderId(userId, orderId));

@@ -5,6 +5,7 @@ import com.atguigu.gmall.model.order.OrderInfo;
 import com.atguigu.gmall.order.client.imp.OrderDegradeFeignClient;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -33,7 +34,9 @@ public interface OrderFeignClient {
     @GetMapping("/auth/trade")
     Result<Map<String, Object>> authTrade();
 
-    @RequestMapping("/inner/getOrderInfoByUserIdAndOrderId")
-//    OrderInfo getOrderInfoByUserIdAndOrderId(HashMap<String, Long> map ) ;
-    OrderInfo getOrderInfoByUserIdAndOrderId();
-}
+    @RequestMapping("/inner/getOrderInfoByUserIdAndOrderId/{orderId}")
+    OrderInfo getOrderInfoByUserIdAndOrderId(@PathVariable Long orderId);
+
+    @GetMapping("/inner/getOrderInfo/{orderId}")
+     OrderInfo getOrderInfo(@PathVariable Long orderId);
+    }

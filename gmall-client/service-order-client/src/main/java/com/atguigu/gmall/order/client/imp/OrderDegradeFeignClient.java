@@ -39,7 +39,13 @@ public class OrderDegradeFeignClient implements OrderFeignClient {
      * description:获取订单信息
      */
     @Override
-    public OrderInfo getOrderInfoByUserIdAndOrderId() {
+    public OrderInfo getOrderInfoByUserIdAndOrderId(Long orderId) {
         return null;
     }
+
+    @Override
+    public OrderInfo getOrderInfo(Long orderId) {
+        return null;
+    }
+
 }
