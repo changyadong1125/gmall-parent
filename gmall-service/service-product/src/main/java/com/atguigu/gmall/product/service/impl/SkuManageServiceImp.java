@@ -1,7 +1,10 @@
 package com.atguigu.gmall.product.service.impl;
 
+
 import com.atguigu.gmall.common.cache.GmallCache;
+import com.atguigu.gmall.common.constant.MqConst;
 import com.atguigu.gmall.common.constant.RedisConst;
+import com.atguigu.gmall.common.service.RabbitService;
 import com.atguigu.gmall.model.product.*;
 import com.atguigu.gmall.product.mapper.SkuAttrValueMapper;
 import com.atguigu.gmall.product.mapper.SkuInfoMapper;
@@ -12,15 +15,12 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-
 import javax.annotation.Resource;
-import javax.crypto.spec.OAEPParameterSpec;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +55,11 @@ public class SkuManageServiceImp implements SkuManageService {
     private SkuSaleAttrValueMapper skuSaleAttrValueMapper;
     @Resource
     private RedissonClient redissonClient;
+    @Resource
+    private RabbitService rabbitService;
+    @Resource
+    private RedisTemplate<String,String> redisTemplate;
+
 
     /**
      * return:
@@ -142,6 +147,9 @@ public class SkuManageServiceImp implements SkuManageService {
      */
     @Override
     public void onSale(Long skuId) {
+        //先删除
+        String key = RedisConst.SKUKEY_PREFIX+"["+skuId+"]"+RedisConst.SKUKEY_SUFFIX;
+        this.redisTemplate.delete(key);
         SkuInfo skuInfo = new SkuInfo();
         skuInfo.setId(skuId);
         skuInfo.setIsSale(1);
@@ -150,7 +158,16 @@ public class SkuManageServiceImp implements SkuManageService {
         //5. 获取布隆过滤器，将新增skuID存入布隆过滤器
         RBloomFilter<Object> bloomFilter = redissonClient.getBloomFilter(RedisConst.SKU_BLOOM_FILTER);
         bloomFilter.add(skuId);
-        //todo:
+        //保证缓存和数据库的一致性
+        //睡眠
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        this.redisTemplate.delete(key);
+        //发送到rabbitMq进行商品上架
+        this.rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_GOODS,MqConst.ROUTING_GOODS_UPPER,skuId);
     }
 
     /**
@@ -161,8 +178,21 @@ public class SkuManageServiceImp implements SkuManageService {
      */
     @Override
     public void cancelSale(Long skuId) {
+        //先删除
+        String key = RedisConst.SKUKEY_PREFIX+"["+skuId+"]"+RedisConst.SKUKEY_SUFFIX;
+        this.redisTemplate.delete(key);
         skuInfoMapper.update(new SkuInfo(), new LambdaUpdateWrapper<SkuInfo>()
                 .eq(SkuInfo::getId, skuId).set(SkuInfo::getIsSale, 0));
+        //保证缓存和数据库的一致性
+        //睡眠
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        this.redisTemplate.delete(key);
+        //发送到rabbitMq
+        this.rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_GOODS,MqConst.ROUTING_GOODS_LOWER,skuId);
     }
 
     /**

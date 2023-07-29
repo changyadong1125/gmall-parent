@@ -7,6 +7,7 @@ import com.atguigu.gmall.model.product.*;
 import com.atguigu.gmall.product.mapper.*;
 import com.atguigu.gmall.product.service.MangeService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -50,6 +51,7 @@ public class MangeServiceImp implements MangeService {
     private BaseCategoryViewMapper baseCategoryViewMapper;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+
 
     /**
      * return:
@@ -166,7 +168,7 @@ public class MangeServiceImp implements MangeService {
     public SkuInfo getSkuInfo(Long skuId) {
         SkuInfo skuInfo = null;
         //声明一个缓存key
-        String skuInfoKey = RedisConst.SKUKEY_PREFIX + skuId + RedisConst.SKUKEY_SUFFIX;
+        String skuInfoKey = RedisConst.SKUKEY_PREFIX + "[" + skuId + "]" + RedisConst.SKUKEY_SUFFIX;
         //判断使用那种数据类型 存储对象最常用地使用Hash 便于对属性的修改
         try {
             skuInfo = (SkuInfo) redisTemplate.opsForValue().get(skuInfoKey);

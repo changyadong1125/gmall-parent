@@ -12,6 +12,7 @@
     <artifactId>gmall-common</artifactId>
     <modules>
         <module>web-util</module>
+        <module>rabbit-util</module>
     </modules>
 
     <properties>

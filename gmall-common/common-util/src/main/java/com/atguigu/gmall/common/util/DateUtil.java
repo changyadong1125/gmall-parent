@@ -59,7 +59,7 @@ public class DateUtil {
      * @return
      */
     public static boolean dateCompare(Date beginDate, Date endDate) {
-        // endDate > beginDate
+        // beginDate > endDate 返回一
         if (DateUtil.truncatedCompareTo(beginDate, endDate, Calendar.SECOND) == 1) {
             return false;
         }

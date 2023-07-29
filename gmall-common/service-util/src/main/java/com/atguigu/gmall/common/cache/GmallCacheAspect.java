@@ -1,21 +1,15 @@
 package com.atguigu.gmall.common.cache;
 
-import com.alibaba.fastjson.JSON;
 import com.atguigu.gmall.common.constant.RedisConst;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-
 import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +34,7 @@ public class GmallCacheAspect {
      * version: 1.0
      * description:使用通知进行切注解
      * 切点是注解GmallCache
-     * 切面试是 服务层中的方法
+     * 切面是本类
      *
      */
 
