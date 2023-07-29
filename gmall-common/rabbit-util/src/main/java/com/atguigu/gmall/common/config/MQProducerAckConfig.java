@@ -83,12 +83,14 @@ public class MQProducerAckConfig implements RabbitTemplate.ReturnCallback, Rabbi
             if (gmallCorrelationData.isDelay()) {
                 //发送延迟消息
                 log.info("重试第{}:次发送》》》》》》》》》...", retryCount);
-                this.rabbitTemplate.convertAndSend(gmallCorrelationData.getExchange(),gmallCorrelationData.getRoutingKey(),message -> {
-                            message.getMessageProperties().setDelay(gmallCorrelationData.getDelayTime()*1000);
-                            return message;}, gmallCorrelationData);
+                this.rabbitTemplate.convertAndSend(gmallCorrelationData.getExchange(), gmallCorrelationData.getRoutingKey(), gmallCorrelationData.getMessage(), message -> {
+                    message.getMessageProperties().setDelay(gmallCorrelationData.getDelayTime() * 1000);
+                    return message;
+                }, gmallCorrelationData);
             } else {
                 //重试发消息
                 log.info("重试第:{}次发送》》》》》》》》》...", retryCount);
+                this.rabbitTemplate.convertAndSend(gmallCorrelationData.getExchange(), gmallCorrelationData.getRoutingKey(), gmallCorrelationData.getMessage(), gmallCorrelationData);
                 this.rabbitTemplate.convertAndSend(gmallCorrelationData.getExchange(), (Object) gmallCorrelationData.getRoutingKey(), gmallCorrelationData);
             }
         }

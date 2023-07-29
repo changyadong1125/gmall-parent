@@ -19,6 +19,11 @@
     <dependencies>
         <dependency>
             <groupId>com.atguigu.gmall</groupId>
+            <artifactId>service-activity-client</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.atguigu.gmall</groupId>
             <artifactId>service-list-client</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

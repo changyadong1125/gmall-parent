@@ -48,4 +48,12 @@ public interface PaymentService {
      * description:方法重载
      */
     void updatePaymentStatus(String outTradeNo, PaymentInfo paymentInfo);
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:关闭交易低订单
+     */
+    void closePaymentInfo(Long orderId);
 }

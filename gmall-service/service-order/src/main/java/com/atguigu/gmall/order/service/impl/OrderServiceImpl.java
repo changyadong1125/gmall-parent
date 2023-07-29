@@ -215,6 +215,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo> im
     @Override
     public void execExpiredOrder(Long orderId) {
         this.updateOrderStatus(orderId, ProcessStatus.CLOSED);
+        //发送消息 关闭交易订单
+        this.rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_PAYMENT_CLOSE,MqConst.ROUTING_PAYMENT_CLOSE,orderId);
     }
 
     /**
@@ -281,6 +283,16 @@ public class OrderServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo> im
         }
         return map;
     }
+
+    @Override
+    public void execExpiredOrder(Long orderId, String s) {
+        this.updateOrderStatus(orderId, ProcessStatus.CLOSED);
+        //发送消息 关闭交易订单
+        if ("2".equals(s)){
+            this.rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_PAYMENT_CLOSE,MqConst.ROUTING_PAYMENT_CLOSE,orderId);
+        }
+    }
+
     /**
      * return:
      * author: smile

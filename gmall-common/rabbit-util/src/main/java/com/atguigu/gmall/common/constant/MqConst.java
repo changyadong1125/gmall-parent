@@ -85,4 +85,5 @@ public class MqConst {
     // 关闭订单
     public static final String QUEUE_ORDER_CLOSED  = "queue.order.closed";
 
+
 }
