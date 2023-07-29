@@ -1,5 +1,8 @@
 package com.atguigu.gmall.order.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.atguigu.gmall.common.constant.MqConst;
+import com.atguigu.gmall.common.service.RabbitService;
 import com.atguigu.gmall.common.util.HttpClientUtil;
 import com.atguigu.gmall.model.enums.OrderStatus;
 import com.atguigu.gmall.model.enums.ProcessStatus;
@@ -12,6 +15,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.junit.jupiter.api.Order;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,11 +26,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import javax.management.ObjectName;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * project:gmall-parent
@@ -39,13 +46,15 @@ import java.util.*;
  */
 @Service
 @RefreshScope
-public class OrderServiceImpl extends ServiceImpl<OrderInfoMapper,OrderInfo> implements OrderService {
+public class OrderServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo> implements OrderService {
     @Resource
     private OrderDetailMapper orderDetailMapper;
     @Resource
     private OrderInfoMapper orderInfoMapper;
     @Resource
     private RedisTemplate<String, String> redisTemplate;
+    @Resource
+    private RabbitService rabbitService;
     @Value("${ware.url}")
     private String WARE_URL;
 
@@ -176,8 +185,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderInfoMapper,OrderInfo> imp
         orderInfoLambdaQueryWrapper.eq(OrderInfo::getId, orderId);
         orderInfoLambdaQueryWrapper.eq(OrderInfo::getUserId, userId);
         OrderInfo orderInfo = orderInfoMapper.selectOne(orderInfoLambdaQueryWrapper);
-        if (null!=orderInfo){
-            orderInfo.setOrderDetailList(orderDetailMapper.selectList(new LambdaQueryWrapper<OrderDetail>().eq(OrderDetail::getOrderId,orderId)));
+        if (null != orderInfo) {
+            orderInfo.setOrderDetailList(orderDetailMapper.selectList(new LambdaQueryWrapper<OrderDetail>().eq(OrderDetail::getOrderId, orderId)));
         }
         return orderInfo;
     }
@@ -190,8 +199,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderInfoMapper,OrderInfo> imp
      */
     @Override
     public OrderInfo getOrderInfo(Long orderId) {
-        return orderInfoMapper.selectById(orderId);
+        OrderInfo orderInfo = orderInfoMapper.selectById(orderId);
+        if (null != orderInfo) {
+            orderInfo.setOrderDetailList(orderDetailMapper.selectList(new LambdaQueryWrapper<OrderDetail>().eq(OrderDetail::getOrderId, orderId)));
+        }
+        return orderInfo;
     }
+
     /**
      * return:
      * author: smile
@@ -216,5 +230,99 @@ public class OrderServiceImpl extends ServiceImpl<OrderInfoMapper,OrderInfo> imp
         orderInfo.setOrderStatus(processStatus.getOrderStatus().name());
         orderInfo.setProcessStatus(processStatus.name());
         baseMapper.updateById(orderInfo);
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:
+     */
+    public void sendDeductStockMsg(Long orderId) {
+        //  更新当前订单状态.
+        this.updateOrderStatus(orderId,ProcessStatus.NOTIFIED_WARE);
+        //
+        OrderInfo orderInfo = this.getOrderInfo(orderId);
+        //根据发送小心将orderInfo中的部分数据封map
+        HashMap<String, Object> map = this.initWareJson(orderInfo);
+        //发消息
+        this.rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_WARE_STOCK, MqConst.ROUTING_WARE_STOCK, JSON.toJSONString(map));
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:转成map
+     */
+    public HashMap<String, Object> initWareJson(OrderInfo orderInfo) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("orderId", orderInfo.getId());
+        map.put("consignee", orderInfo.getConsignee());
+        map.put("consigneeTel", orderInfo.getConsigneeTel());
+        map.put("orderComment", orderInfo.getOrderComment());
+        map.put("orderBody", orderInfo.getTradeBody());
+        map.put("deliveryAddress", orderInfo.getDeliveryAddress());
+        map.put("paymentWay", "2");
+        //  专门给拆单使用。
+        map.put("wareId", orderInfo.getWareId());
+        //获取订单明细
+        List<OrderDetail> orderDetailList = orderInfo.getOrderDetailList();
+        if (!CollectionUtils.isEmpty(orderDetailList)) {
+            List<HashMap<String, Object>> detailList = orderDetailList.stream().map(orderDetail -> {
+                HashMap<String, Object> detailMap = new HashMap<>();
+                detailMap.put("skuId", orderDetail.getSkuId());
+                detailMap.put("skuNum", orderDetail.getSkuNum());
+                detailMap.put("skuName", orderDetail.getSkuName());
+                return detailMap;
+            }).collect(Collectors.toList());
+            //details
+            map.put("details", detailList);
+        }
+        return map;
+    }
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:拆单
+     */
+    @Override
+    public List<OrderInfo> orderSplit(String orderId, String wareSkuMap) {
+        //创建一个子订单集合
+        ArrayList<OrderInfo> orderInfos = new ArrayList<>();
+        //获取原始订单
+        OrderInfo orderInfo = this.getOrderInfo(Long.valueOf(orderId));
+        //根据字符串判断怎么拆单
+        List<Map> maps = JSON.parseArray(wareSkuMap, Map.class);
+        if (!CollectionUtils.isEmpty(maps)) {
+            for (Map map : maps) {
+                String wareId = (String) map.get("wareId");
+                List<String> skuIdsList = (List<String>) map.get("skuIds");
+                //创建子订单并赋值
+                OrderInfo subOrderInfo = new OrderInfo();
+                BeanUtils.copyProperties(orderInfo, subOrderInfo);
+                //防止主键冲突
+                subOrderInfo.setId(null);
+                //设置父级Id
+                subOrderInfo.setParentOrderId(Long.parseLong(orderId));
+                //设置仓库Id
+                subOrderInfo.setWareId(wareId);
+                //单独计算订单总金额
+                List<OrderDetail> orderDetailList = orderInfo.getOrderDetailList().stream().filter(orderDetail ->
+                        skuIdsList.contains(orderDetail.getSkuId().toString())
+                ).collect(Collectors.toList());
+                subOrderInfo.setOrderDetailList(orderDetailList);
+                //计算订单总金额
+                subOrderInfo.sumTotalAmount();
+                //将子订单添加到集合
+                orderInfos.add(subOrderInfo);
+                //姜子订单保存到数据库
+                this.saveOrderInfo(subOrderInfo);
+            }
+        }
+        //修改原始订单
+        this.updateOrderStatus(Long.parseLong(orderId), ProcessStatus.SPLIT);
+        return orderInfos;
     }
 }

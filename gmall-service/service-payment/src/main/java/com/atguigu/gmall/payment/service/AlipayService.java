@@ -18,4 +18,11 @@ public interface AlipayService {
      * description:支付二维码
      */
     String createPay(Long orderId);
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:退款接口
+     */
+    boolean refund(Long orderId);
 }

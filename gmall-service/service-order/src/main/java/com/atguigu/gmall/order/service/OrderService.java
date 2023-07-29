@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.List;
 
 
 /**
@@ -85,4 +87,26 @@ public interface OrderService extends IService<OrderInfo> {
      * description:更改订单状态
      */
     void updateOrderStatus(Long orderId, ProcessStatus closed);
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:
+     */
+    public void sendDeductStockMsg(Long orderId);
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:拆单
+     */
+    List<OrderInfo> orderSplit(String orderId, String wareSkuMap);
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:转成map
+     */
+    public HashMap<String, Object> initWareJson(OrderInfo orderInfo);
 }

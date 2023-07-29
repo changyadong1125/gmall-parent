@@ -18,8 +18,10 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -100,8 +102,9 @@ public class OrderApiController {
      * version: 1.0
      * description:保存订单 判断库存是否充足 判断商品价格是否变动 判断是否回退无刷新重复提交
      */
-    @PostMapping("auth/submitOrder")
+    @PostMapping("/auth/submitOrder")
     public Result<?> submitOrder(@RequestBody OrderInfo orderInfo, HttpServletRequest request) {
+        System.out.println("11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
         // 获取到用户Id
         String userId = AuthContextHolder.getUserId(request);
         orderInfo.setUserId(Long.parseLong(userId));
@@ -170,7 +173,7 @@ public class OrderApiController {
         LocalDateTime localDateTime = LocalDateTime.now();
         LocalDateTime toLocalDateTime = expireTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         Duration duration = Duration.between(toLocalDateTime, localDateTime);
-        rabbitService.sendDelayMessage(MqConst.EXCHANGE_DIRECT_ORDER_CANCEL, MqConst.ROUTING_ORDER_CANCEL, orderId, Math.abs((int)duration.getSeconds()));
+        rabbitService.sendDelayMessage(MqConst.EXCHANGE_DIRECT_ORDER_CANCEL, MqConst.ROUTING_ORDER_CANCEL, orderId, Math.abs((int) duration.getSeconds()));
         return Result.ok(orderId);
     }
 
@@ -211,4 +214,27 @@ public class OrderApiController {
     public String getOrderInfoByUserIdAndOrderId(@RequestParam Long userId,@RequestParam Long orderId) {
         return JSONObject.toJSONString(orderService.getOrderInfoByUserIdAndOrderId(userId, orderId));
     }*/
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:拆单
+     */
+    @PostMapping("/orderSplit")
+    public List orderSplit(HttpServletRequest request) {
+        //获取订单Id
+        String orderId = request.getParameter("orderId");
+        String wareSkuMap = request.getParameter("wareSkuMap");
+        //调用服务成拆单方法
+        List<OrderInfo> orderInfoList = this.orderService.orderSplit(orderId, wareSkuMap);
+        //  改造成我们需要的数据 获取 map 够成的子订单
+        List<Map<String, Object>> mapList = orderInfoList.stream().map(orderInfo -> {
+            //  将orderInfo 转换为map 集合
+            Map<String, Object> map = orderService.initWareJson(orderInfo);
+            return map;
+        }).collect(Collectors.toList());
+        //  真正的子订单集合
+        return mapList;
+    }
 }

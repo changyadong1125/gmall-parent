@@ -5,14 +5,22 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
+import com.alipay.api.response.AlipayTradeRefundResponse;
+import com.atguigu.gmall.common.constant.MqConst;
+import com.atguigu.gmall.common.service.RabbitService;
 import com.atguigu.gmall.common.util.DateUtil;
+import com.atguigu.gmall.model.enums.PaymentStatus;
 import com.atguigu.gmall.model.enums.PaymentType;
 import com.atguigu.gmall.model.order.OrderInfo;
+import com.atguigu.gmall.model.payment.PaymentInfo;
 import com.atguigu.gmall.order.client.OrderFeignClient;
 import com.atguigu.gmall.payment.config.AlipayConfig;
 import com.atguigu.gmall.payment.service.AlipayService;
 import com.atguigu.gmall.payment.service.PaymentService;
+import lombok.SneakyThrows;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -33,6 +41,7 @@ import java.time.ZoneId;
  * @Description:
  */
 @Service
+@RefreshScope
 public class AlipayServiceImpl implements AlipayService {
     @Resource
     private OrderFeignClient orderFeignClient;
@@ -40,6 +49,8 @@ public class AlipayServiceImpl implements AlipayService {
     private PaymentService paymentService;
     @Resource
     private AlipayClient alipayClient;
+    @Resource
+    private RabbitService rabbitService;
 
     /**
      * return:
@@ -66,7 +77,7 @@ public class AlipayServiceImpl implements AlipayService {
                "RSA2");
         */
         AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
-        //异步接收地址，仅支持http/https，公网可访问
+        //异步接收地址，仅支持http/https，公网可访问  内网穿透工具没开一次换一次 需要修改配置文件
         request.setNotifyUrl(AlipayConfig.notify_payment_url);
         //同步跳转地址，仅支持http/https
         request.setReturnUrl(AlipayConfig.return_payment_url);
@@ -88,7 +99,7 @@ public class AlipayServiceImpl implements AlipayService {
         java.util.Date date = Date.from(instant);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         java.util.Date expireTime = orderInfo.getExpireTime();
-        String dateString = format.format(DateUtil.dateCompare(expireTime,date)?expireTime:date);
+        String dateString = format.format(DateUtil.dateCompare(expireTime, date) ? date : expireTime);
         //如果expireTime订单过期时间比date晚 返回false
         bizContent.put("time_expire", dateString);
 
@@ -116,5 +127,49 @@ public class AlipayServiceImpl implements AlipayService {
             throw new RuntimeException(e);
         }
         return response.getBody();
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:退款接口
+     */
+    @SneakyThrows
+    @Override
+    public boolean refund(Long orderId) {
+        AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
+        //查询out_trade_no
+        OrderInfo orderInfo = this.orderFeignClient.getOrderInfo(orderId);
+        JSONObject bizContent = new JSONObject();
+        bizContent.put("out_trade_no", orderInfo.getOutTradeNo());
+        bizContent.put("refund_amount", 0.01);
+
+        /*
+        返回参数选项，按需传入
+        bizContent.put("out_request_no", "HZ01RF001");
+        JSONArray queryOptions = new JSONArray();
+        queryOptions.add("refund_detail_item_list");
+        bizContent.put("query_options", queryOptions);*/
+
+        request.setBizContent(bizContent.toString());
+        AlipayTradeRefundResponse response = alipayClient.execute(request);
+        if (response.isSuccess()) {
+            if ("Y".equals(response.getFundChange())) {
+                System.out.println("调用成功");
+                //修改交易记录状态 payment_status
+                PaymentInfo paymentInfo = new PaymentInfo();
+                paymentInfo.setPaymentStatus(PaymentStatus.CLOSED.name());
+                this.paymentService.updatePaymentStatus(orderInfo.getOutTradeNo(), paymentInfo);
+                //修改订单状态
+                this.rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_ORDER_CLOSED, MqConst.ROUTING_ORDER_CLOSED, orderId);
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            System.out.println("调用失败");
+            return false;
+        }
     }
 }

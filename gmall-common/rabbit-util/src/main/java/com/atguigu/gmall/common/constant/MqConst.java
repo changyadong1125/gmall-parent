@@ -78,6 +78,11 @@ public class MqConst {
     public static final String ROUTING_TASK_18 = "seckill.task.18";
     //队列
     public static final String QUEUE_TASK_18  = "queue.task.18";
-
+    //  关闭订单交换机
+    public static final String EXCHANGE_DIRECT_ORDER_CLOSED = "exchange.direct.order.closed";//"exchange.direct.order.create" test_exchange;
+    //  关闭订单路由键
+    public static final String ROUTING_ORDER_CLOSED = "order.closed";
+    // 关闭订单
+    public static final String QUEUE_ORDER_CLOSED  = "queue.order.closed";
 
 }
