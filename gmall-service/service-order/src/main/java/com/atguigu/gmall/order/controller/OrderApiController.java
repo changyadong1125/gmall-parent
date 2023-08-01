@@ -18,10 +18,8 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -104,7 +102,6 @@ public class OrderApiController {
      */
     @PostMapping("/auth/submitOrder")
     public Result<?> submitOrder(@RequestBody OrderInfo orderInfo, HttpServletRequest request) {
-        System.out.println("11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
         // 获取到用户Id
         String userId = AuthContextHolder.getUserId(request);
         orderInfo.setUserId(Long.parseLong(userId));
@@ -236,5 +233,15 @@ public class OrderApiController {
         }).collect(Collectors.toList());
         //  真正的子订单集合
         return mapList;
+    }
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:提交订单
+     */
+    @PostMapping("inner/seckill/submitOrder")
+    public Long submitOrder(@RequestBody OrderInfo orderInfo) {
+        return orderService.saveOrderInfo(orderInfo).getId();
     }
 }

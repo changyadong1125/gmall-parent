@@ -1,5 +1,5 @@
 package com.atguigu.gmall.common.constant;
-
+@SuppressWarnings("all")
 public class MqConst {
     /**
      * 消息补偿
@@ -63,6 +63,9 @@ public class MqConst {
     public static final String ROUTING_TASK_1 = "seckill.task.1";
     //队列
     public static final String QUEUE_TASK_1  = "queue.task.1";
+    public static final String ROUTING_TASK_2 = "seckill.task.2";
+    //队列
+    public static final String QUEUE_TASK_2  = "queue.task.2";
     /**
      * 秒杀
      */
@@ -71,13 +74,6 @@ public class MqConst {
     //队列
     public static final String QUEUE_SECKILL_USER  = "queue.seckill.user";
 
-    /**
-     * 定时任务
-     */
-
-    public static final String ROUTING_TASK_18 = "seckill.task.18";
-    //队列
-    public static final String QUEUE_TASK_18  = "queue.task.18";
     //  关闭订单交换机
     public static final String EXCHANGE_DIRECT_ORDER_CLOSED = "exchange.direct.order.closed";//"exchange.direct.order.create" test_exchange;
     //  关闭订单路由键
@@ -85,5 +81,9 @@ public class MqConst {
     // 关闭订单
     public static final String QUEUE_ORDER_CLOSED  = "queue.order.closed";
 
+
+    public static final String EXCHANGE_DIRECT_SECKILL_STOCK ="exchange.direct.seckill.stock" ;
+    public static final String ROUTING_SECKILL_STOCK = "routing.seckill.stock" ;
+    public static final String QUEUE_SECKILL_STOCK = "queue.seckill.stock" ;
 
 }

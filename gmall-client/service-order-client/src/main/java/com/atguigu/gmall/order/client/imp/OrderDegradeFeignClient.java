@@ -4,9 +4,6 @@ import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.model.order.OrderInfo;
 import com.atguigu.gmall.order.client.OrderFeignClient;
 import org.springframework.stereotype.Component;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -48,4 +45,8 @@ public class OrderDegradeFeignClient implements OrderFeignClient {
         return null;
     }
 
+    @Override
+    public Long submitOrder(OrderInfo orderInfo) {
+        return null;
+    }
 }
