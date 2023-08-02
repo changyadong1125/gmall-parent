@@ -37,7 +37,7 @@ public class ScheduledTask {
      * 			 ④、具体值的列表 4,5,7,8,10
      */
 
-    @Scheduled(cron = "0/10 * * * * ?")
+//    @Scheduled(cron = "0/60 * * * * ?")
     public void task1() {
         rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_TASK, MqConst.ROUTING_TASK_1, "老师说传啥都行");
     }

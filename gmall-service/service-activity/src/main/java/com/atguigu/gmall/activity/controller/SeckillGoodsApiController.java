@@ -11,12 +11,9 @@ import com.atguigu.gmall.model.order.OrderInfo;
 import com.atguigu.gmall.order.client.OrderFeignClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.HttpServletBean;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,7 +56,7 @@ public class SeckillGoodsApiController {
      * return:
      * author: smile
      * version: 1.0
-     * description:
+     * description:生成抢购码
      */
     @GetMapping("/auth/getSeckillSkuIdStr/{skuId}")
     public Result<?> getSeckillSkuIdStr(@PathVariable Long skuId, HttpServletRequest request) {

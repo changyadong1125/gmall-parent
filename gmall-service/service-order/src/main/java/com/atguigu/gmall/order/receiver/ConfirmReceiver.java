@@ -54,7 +54,7 @@ public class ConfirmReceiver {
                         Boolean exist = paymentFeignClient.checkPayment(orderId);
                         if (exist){
                             //有交易记录 说明用户扫码了
-                            //调用关闭接口 如果说明用户没有支付
+                            //调用关闭接口 如果关闭成功说明用户没有支付
                             Boolean result = paymentFeignClient.closePay(orderId);
                             if (result){
                                 //成功说明用户没有支付成功只需要关闭orderInfo paymentInfo

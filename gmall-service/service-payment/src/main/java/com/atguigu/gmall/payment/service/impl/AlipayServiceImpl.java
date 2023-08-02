@@ -243,10 +243,10 @@ public class AlipayServiceImpl implements AlipayService {
             //已经关闭的，提示tradeClosed
             //扫码未支付，提示wait_buyer_pay
             //未扫码，提示交易不存在
-            System.out.println("调用成功");
+            System.out.println("有交易记录");
             return true;
         } else {
-            System.out.println("调用失败");
+            System.out.println("没有交易记录");
             return false;
         }
     }
