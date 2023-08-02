@@ -5,7 +5,9 @@ import com.atguigu.gmall.common.constant.MqConst;
 import com.atguigu.gmall.model.enums.OrderStatus;
 import com.atguigu.gmall.model.enums.ProcessStatus;
 import com.atguigu.gmall.model.order.OrderInfo;
+import com.atguigu.gmall.model.payment.PaymentInfo;
 import com.atguigu.gmall.order.service.OrderService;
+import com.atguigu.gmall.payment.client.PaymentFeignClient;
 import com.rabbitmq.client.Channel;
 import lombok.SneakyThrows;
 import lombok.Value;
@@ -26,23 +28,50 @@ import java.util.Map;
 public class ConfirmReceiver {
     @Resource
     private OrderService orderService;
+    @Resource
+    private PaymentFeignClient paymentFeignClient;
 
     /**
      * return:
      * author: smile
      * version: 1.0
-     * description:监听订单信息
+     * description:监听订单信息 关闭订单
      */
     @SneakyThrows
     @RabbitListener(queues = MqConst.QUEUE_ORDER_CANCEL)
     public void receiver(Long orderId, Channel channel, Message message) {
+        //判断orderInfo有没有数据  paymentInfo有没有数据  aliPay
         if (null != orderId) {
             try {
                 //判断当前订单的状态
                 OrderInfo orderInfo = orderService.getOrderInfo(orderId);
                 if (null != orderInfo && "UNPAID".equals(orderInfo.getOrderStatus()) && "UNPAID".equals(orderInfo.getProcessStatus())) {
-                    //取消订单
-                    orderService.execExpiredOrder(orderId);
+                    //判断是否有交易记录
+                    PaymentInfo paymentInfo = paymentFeignClient.getPaymentInfo(orderInfo.getOutTradeNo());
+                    if (null!=paymentInfo){
+                        //判断是否需要关闭alipay
+                        //可能需要关闭orderInfo paymentInfo
+                        Boolean exist = paymentFeignClient.checkPayment(orderId);
+                        if (exist){
+                            //有交易记录 说明用户扫码了
+                            //调用关闭接口 如果说明用户没有支付
+                            Boolean result = paymentFeignClient.closePay(orderId);
+                            if (result){
+                                //成功说明用户没有支付成功只需要关闭orderInfo paymentInfo
+                                orderService.execExpiredOrder(orderId,"2");
+                            }else {
+                                //表示没有关闭成功，在即将过期的时间完成了支付操作 说明用户支付成功则不要进性其他操作
+                                System.out.println("兄弟好手速！");
+                            }
+                        }else {
+                            //没有交易记录 说明没有扫码 关闭orderInfo paymentInfo
+                            orderService.execExpiredOrder(orderId,"2");
+                        }
+                    }else {
+                        //调用取消订单方法 需要关闭orderInfo
+                        //取消订单
+                        orderService.execExpiredOrder(orderId,"1");
+                    }
                 }
             } catch (Exception e) {
                 //如果发生异常 可以进行下一步处理

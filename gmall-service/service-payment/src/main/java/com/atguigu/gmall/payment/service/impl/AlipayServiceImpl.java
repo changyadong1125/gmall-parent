@@ -4,9 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
+import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.request.AlipayTradeRefundRequest;
+import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradePagePayResponse;
+import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.atguigu.gmall.common.constant.MqConst;
 import com.atguigu.gmall.common.service.RabbitService;
@@ -99,7 +103,7 @@ public class AlipayServiceImpl implements AlipayService {
         java.util.Date date = Date.from(instant);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         java.util.Date expireTime = orderInfo.getExpireTime();
-        String dateString = format.format(DateUtil.dateCompare(expireTime, date) ? date : expireTime);
+        String dateString = format.format(DateUtil.dateCompare(expireTime, date) ? expireTime : date);
         //如果expireTime订单过期时间比date晚 返回false
         bizContent.put("time_expire", dateString);
 
@@ -167,6 +171,80 @@ public class AlipayServiceImpl implements AlipayService {
             } else {
                 return false;
             }
+        } else {
+            System.out.println("调用失败");
+            return false;
+        }
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:关闭支付宝交易
+     */
+    @SneakyThrows
+    @Override
+    public Boolean closePay(Long orderId) {
+        //获取订单对象
+        OrderInfo orderInfo = this.orderFeignClient.getOrderInfo(orderId);
+        if (orderInfo == null) {
+            return false;
+        }
+        AlipayTradeCloseRequest request = new AlipayTradeCloseRequest();
+        JSONObject bizContent = new JSONObject();
+        //只有支付成功之后才会有值
+        bizContent.put("out_trade_no", orderInfo.getOutTradeNo());
+        request.setBizContent(bizContent.toString());
+        AlipayTradeCloseResponse response = alipayClient.execute(request);
+        if (response.isSuccess()) {
+            System.out.println("调用成功");
+            //如果支付宝关闭成功 就必须要关闭交易记录和订单记录
+            //什么时候需要关闭订单
+            // 一种是已经支付的交易记录不能关闭
+            // 一种是没有支付的交易记录未扫码（表示交易不存在）
+            // 扫码未支付的订单可以取消
+            return true;
+        } else {
+            System.out.println("调用失败");
+            return false;
+        }
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:查询交易记录
+     */
+    @SneakyThrows
+    @Override
+    public Boolean checkPayment(Long orderId) {
+        OrderInfo orderInfo = this.orderFeignClient.getOrderInfo(orderId);
+        if (orderInfo == null) {
+            return false;
+        }
+        AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
+        JSONObject bizContent = new JSONObject();
+        bizContent.put("out_trade_no", orderInfo.getOutTradeNo());
+        request.setBizContent(bizContent.toString());
+        AlipayTradeQueryResponse response = alipayClient.execute(request);
+        if (response.isSuccess()) {
+           /*可以更加细致的判断
+            String tradeStatus = response.getTradeStatus();
+            if ("WAIT_BUYER_PAY".equals(tradeStatus)) {
+                log.info("等待付款");
+            } else if ("TRADE_SUCCESS".equals(tradeStatus)) {
+                log.info("支付成功");
+            } else {
+                log.info("扫码未支付超时关闭");
+            }*/
+            //进行支付过的，提示tradeSuccess
+            //已经关闭的，提示tradeClosed
+            //扫码未支付，提示wait_buyer_pay
+            //未扫码，提示交易不存在
+            System.out.println("调用成功");
+            return true;
         } else {
             System.out.println("调用失败");
             return false;

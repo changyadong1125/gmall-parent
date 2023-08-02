@@ -109,4 +109,12 @@ public interface OrderService extends IService<OrderInfo> {
      * description:转成map
      */
     public HashMap<String, Object> initWareJson(OrderInfo orderInfo);
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:
+     */
+    void execExpiredOrder(Long orderId, String s);
 }

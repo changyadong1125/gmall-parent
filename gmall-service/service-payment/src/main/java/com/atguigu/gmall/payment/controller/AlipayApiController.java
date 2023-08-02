@@ -2,6 +2,7 @@ package com.atguigu.gmall.payment.controller;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;;
 import com.atguigu.gmall.common.result.Result;
+import com.atguigu.gmall.model.enums.PaymentType;
 import com.atguigu.gmall.model.payment.PaymentInfo;
 import com.atguigu.gmall.payment.config.AlipayConfig;
 import com.atguigu.gmall.payment.service.AlipayService;
@@ -136,5 +137,36 @@ public class AlipayApiController {
         // 调用退款接口
         boolean flag = alipayService.refund(orderId);
         return Result.ok(flag);
+    }
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:关闭支付宝交易
+     */
+    @GetMapping("closePay/{orderId}")
+    public Boolean closePay(@PathVariable Long orderId){
+        return alipayService.closePay(orderId);
+    }
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:查询交易记录
+     */
+    @GetMapping("checkPayment/{orderId}")
+    public Boolean checkPayment(@PathVariable Long orderId){
+        // 调用退款接口
+        return alipayService.checkPayment(orderId);
+    }
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:查看是否有本地交易记录 为什么这里可以直接当参数直接传递进去！
+     */
+    @GetMapping("/getPaymentInfo/{outTradeNo}")
+    public PaymentInfo getPaymentInfo(@PathVariable String outTradeNo){
+        return this.paymentService.getPaymentInfo(outTradeNo);
     }
 }

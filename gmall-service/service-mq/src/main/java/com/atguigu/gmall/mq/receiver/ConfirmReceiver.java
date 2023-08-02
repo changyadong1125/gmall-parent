@@ -20,7 +20,7 @@ import java.util.Date;
 @Component
 public class ConfirmReceiver {
     @Resource
-    private RedisTemplate redisTemplate;
+    private RedisTemplate<String,String> redisTemplate;
 
     @RabbitListener(bindings = @QueueBinding(
             value = @Queue(value = "queue.confirm", durable = "true", autoDelete = "false"),
@@ -64,7 +64,6 @@ public class ConfirmReceiver {
         channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
     }
     @SneakyThrows
-//    @RabbitListener(queues = DelayedMqConfig.queue_delay_1)
     public void getDeadMsg2(JSONObject jsonObject , Channel channel, Message message) {
         //String messageId = message.getMessageProperties().getHeader("spring_returned_message_correlation");
         // setnx
@@ -73,7 +72,7 @@ public class ConfirmReceiver {
         if (Boolean.TRUE.equals(aBoolean)){
             try {
                 //发生异常
-//                int a = 10/0;
+                //int a = 10/0;
                 System.out.println("消息：" + jsonObject.get("content"));
                 //开启确认 第一个参数表示消息的唯一表示 第二个表示是否批量确认
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -88,7 +87,7 @@ public class ConfirmReceiver {
             //消息确认 出队
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
             //消息没有正确处理 出对
-//            channel.basicNack(message.getMessageProperties().getDeliveryTag(),false,false);
+            //channel.basicNack(message.getMessageProperties().getDeliveryTag(),false,false);
         }
 
     }

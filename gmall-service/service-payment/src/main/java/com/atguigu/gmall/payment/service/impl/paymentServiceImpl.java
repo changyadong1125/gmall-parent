@@ -14,6 +14,7 @@ import com.atguigu.gmall.model.payment.PaymentInfo;
 import com.atguigu.gmall.payment.mapper.PaymentInfoMapper;
 import com.atguigu.gmall.payment.service.PaymentService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
@@ -96,7 +97,7 @@ public class paymentServiceImpl implements PaymentService {
         //修改交易内容
         paymentInfoMapper.updateById(paymentInfo);
         //发送一个消息给订单 减库存
-        this.rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_PAYMENT_PAY,MqConst.ROUTING_PAYMENT_PAY,paymentInfo.getOrderId());
+        this.rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_PAYMENT_PAY, MqConst.ROUTING_PAYMENT_PAY, paymentInfo.getOrderId());
     }
 
     /**
@@ -110,5 +111,21 @@ public class paymentServiceImpl implements PaymentService {
         LambdaQueryWrapper<PaymentInfo> paymentInfoLambdaQueryWrapper = new LambdaQueryWrapper<>();
         paymentInfoLambdaQueryWrapper.eq(PaymentInfo::getOutTradeNo, outTradeNo);
         paymentInfoMapper.update(paymentInfo, paymentInfoLambdaQueryWrapper);
+    }
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:关闭交易订单
+     */
+    @Override
+    public void closePaymentInfo(Long orderId) {
+        //更新交易记录状态
+        LambdaUpdateWrapper<PaymentInfo> paymentInfoLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        paymentInfoLambdaUpdateWrapper.eq(PaymentInfo::getOrderId, orderId);
+        PaymentInfo paymentInfo = new PaymentInfo();
+        paymentInfo.setPaymentStatus(PaymentStatus.CLOSED.name());
+        paymentInfoMapper.update(paymentInfo, paymentInfoLambdaUpdateWrapper);
     }
 }

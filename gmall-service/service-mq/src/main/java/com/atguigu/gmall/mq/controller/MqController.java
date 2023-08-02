@@ -57,14 +57,11 @@ public class MqController {
     }
     //  发送延迟消息-插件实现
     @GetMapping("/sendDelayMsg1")
-    public Result sendDelayMsg1(){
-        //  利用时间判断是否延迟10s;
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public Result<?> sendDelayMsg1(){
         //  每次发送的消息，都给它配一个uuid
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("messageId", UUID.randomUUID().toString());
         jsonObject.put("content", "atguigu");
-
         //  10s 延迟消息。
         rabbitService.sendDelayMessage(DelayedMqConfig.exchange_delay,DelayedMqConfig.routing_delay,jsonObject,10);
         return Result.ok();

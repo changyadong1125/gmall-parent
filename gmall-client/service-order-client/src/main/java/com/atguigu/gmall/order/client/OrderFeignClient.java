@@ -4,10 +4,7 @@ import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.model.order.OrderInfo;
 import com.atguigu.gmall.order.client.imp.OrderDegradeFeignClient;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -39,4 +36,13 @@ public interface OrderFeignClient {
 
     @GetMapping("/inner/getOrderInfo/{orderId}")
      OrderInfo getOrderInfo(@PathVariable Long orderId);
+
+    /**
+     * return:
+     * author: smile
+     * version: 1.0
+     * description:秒杀订单
+     */
+    @PostMapping("/inner/seckill/submitOrder")
+    Long submitOrder(@RequestBody OrderInfo orderInfo);
     }
